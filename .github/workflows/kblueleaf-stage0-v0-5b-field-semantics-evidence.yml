@@ -1,0 +1,232 @@
+name: KBlueLeaf Stage0 v0.5b field semantics evidence
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Reconstruct frozen Stage0.5b inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > extract_kblueleaf_stage0_5b_field_semantics_evidence.py.xz.b64 <<'EOF_STAGE05_SCRIPT'
+          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
+          ylkAAKHV9MSxxGf7AgAAAAAEWVo=
+          EOF_STAGE05_SCRIPT
+          base64 -d extract_kblueleaf_stage0_5b_field_semantics_evidence.py.xz.b64 | xz -d > extract_kblueleaf_stage0_5b_field_semantics_evidence.py
+          rm extract_kblueleaf_stage0_5b_field_semantics_evidence.py.xz.b64
+          echo 'e3be1a1d3b8adb9486b546c848a26f249ea56ceca906e997d1ee8cfbcf001b40  extract_kblueleaf_stage0_5b_field_semantics_evidence.py' | sha256sum -c -
+          cat > test_extract_kblueleaf_stage0_5b_field_semantics_evidence.py.xz.b64 <<'EOF_STAGE05_TEST'
+          /Td6WFoAAATm1rRGAgAhARwAAAAQz1jM4BAmBs5dADSbSme4Ujxzzbf17MGz43N4yUI3vUg73g6pDbKX+enbk34YOqa7Ht12a56EUYJ6SCjjwKNkX66j4dGa
+          oe5l7ihk6gIEnGRwrHkuAFGnPbAk+1K74SUYHYVyoBnzVLgr6xJZmoiG9UDCNmHHGoI5hy4ha+Vp1whfHAjCBbDVMQ2WD0SPAdyMNKpXv9ednsvZ5qfGvd77
+          tb1xI/AFR5h1F6UYOpcX6JPF2lKP7qzq5etA5v4jzTFlbRtPzzw1sAwMLPk4/x/Zqh8imnuxYrhbfSF5sZnr8H/6A0IlxM5VOsYXn0Bgk/GpqWQRRR0fFxbs
+          8gmhF9ahLv2khmK+gpdy3qz7dX+803vOQQeKdRQsxQq633QIdEYolyORxOtJbSXMP733McRHkNU/q0/bjFYxgk4RsGZIkoMBQFyt71MLdaOSLY7jT5Q5YrHa
+          KFcwMLAwqGolJ1mSL9bau0yd8S0uHedOD0Ghp6nz0U+5vJof71gwRura9Sco5cAorApeOxx5fzd5QM2qJWP5pAHmfEbrnLVSd3KPIiZt+5F8CwXGxag3ijjo
+          /mVOdjRsRHspo/uJKAPsLH2JEOWIuAvhJ7I9Pkc16E2JbRtzD03/L6flSPzjsbbXC/EBurt3HA96/LnICjjzWKqzOFKBVEPx5Ko19UCcCw8db29aW1oV6gFK
+          ATKMsIf10DaJz5PmhpBvOt6hSbS33+L+VPqUeHekIkoiXeN/MkKuNQa2l6OkgAW9lqF4jyLTCBP8ZOpU49E9zbRgd8EtqB1/KggWhC23TsrTFj9oSYWo2VPx
+          MfywIoJRhmyU8CFLWc6JNDPc4QrLMIZLDJ3Vl72lMUwMV9bLlshaKcqTHv/VsOaA6vFtMZtXX4iAxz3OojN8Tdk1RkcrCt97i0H2NCdmNDwIISID16TmPGO6
+          lpZGOawPBMQHy8JRBmRbBhLczsrHrI/AJrVFy2bcaOxSP6FwLkSPWQMDu6JY6SQF7SAkn9SVNiSgGIP6SeDkaFN4xoIuZ4cdpeU5w1TQ5sDVagBMlfhUqNTM
+          toTs6PHmEPH5iSm0GivIj6a5VUvxDURJOkYn8F8hcYrDoA4AhBiT+Tc+2G56KU/ytnnEmmIM03idcmqaTpnC7aw5WmprasM1U/PeqjDsrNpELXYCgHsGz69k
+          ltA40ZdDU6ayPsN3ZIGkX8KHa34sE2p4irMlD7D2tH9kIysFj5qVEh96oItXujW3l26AheCvcqdH1xK2BfIigNIYPS8Og7hdgTFfWXo6SJv4Cif5n5IuG5OH
+          5nlhYgKx1oE3AS9sY07ms53OlfF6b//FH6cz79B1TAmU0ELeiHoHf7WB1fFRRkTdgetdRMEMwnAyWo6gBp10paNihU9pTTdqTfQtDQe+94ufj/5CCzAsyJXs
+          lQGzclfCNGZ+o1Q7IlLSCrFPCsSogYXqV/J6BsuztMFbMZuK/8Rt6IObx6NDQEOfaS5ZGpNmAKvVg6tOjyzOxx315hBkj0XjLKeGukkUKsZzhhnjNBXxl8Z0
+          1+w4MVI1Bp9MFBCz5/14KfKD9FhL3f3E+ugTGMfeHdweawS2BMtubFHpiedJih5jVA4GQR3AMsyr7DlAf4K8bC/f2WPsWefqhChxvKd00yjA4mQjChxqZb6d
+          KTD1C9a3v4/Ilnt4vWiz1gahiS552zvhBUhBy2D1JWqD5RyZUmHWRiQFU7lyOjegGbQSmhdtdaingOuT8i+2oouKUgvrDilNC2qiNu69Yb9JdRuN1MzOKTis
+          7PPs/bsgCROtFJuMC+qAIOO1DV/utnFWa95UNE5sLuVlZHmEkJroSlf7esLsFOP6V1Jg8eVq0C65LPD6H4955k2h+z7LUSfMILj6qoYppmIzPbR+96CIER2S
+          XJ++1tVbKR8EbCrdWi+2WznE/6oDwA0XXudRs8yPht/PycCpLHKq0YCnCscZ3oZ3ODcBKYkSn61AdfAsKnZCP2vft5nvTcayi6ryQPVsK5kj2DcIzGwsv/Em
+          uoikfTN/ipe1ePBYmS6q+0DiI1LiL0q8jRhcT84DeoTiqj8PaCS/ASlS3FmD9MehwffzhO/uiOd3hraPe0f6+UoOfyDacYJRymR1PoKpb+H8jwQJEY/476z8
+          IIhRlsWKENbrPARzUoJl7N5h2LWBEe/X00Ll9hA5a3X33U1fPEj8yl18cJaESCrn6hVQ4OLxYeEgzjfkfXZc7atenTWK1GJkiZNKq2lWneSb5uPXiTzNy/w3
+          O4VyCu1M3yF1XW/2+LcUVXglxhb5814RO1oVRMwO++BcuzEbOThDGhiUXjf8+WWTjfIHtNGicSu/Y0QOL5+UAAAAGBHcrsZAHcYAAeoNpyAAANRP62SxxGf7
+          AgAAAAAEWVo=
+          EOF_STAGE05_TEST
+          base64 -d test_extract_kblueleaf_stage0_5b_field_semantics_evidence.py.xz.b64 | xz -d > test_extract_kblueleaf_stage0_5b_field_semantics_evidence.py
+          rm test_extract_kblueleaf_stage0_5b_field_semantics_evidence.py.xz.b64
+          echo '5ddbf1c3eb5bf00589af96a500d89a9e4dc47b2c1b331306965766a4e661b33b  test_extract_kblueleaf_stage0_5b_field_semantics_evidence.py' | sha256sum -c -
+          cat > KBLUELEAF_STAGE0_5_FIELD_MISMATCH_PAIRS_599_v0.1.csv.xz.b64 <<'EOF_STAGE05_PAIRS'
+          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
+          EOF_STAGE05_PAIRS
+          base64 -d KBLUELEAF_STAGE0_5_FIELD_MISMATCH_PAIRS_599_v0.1.csv.xz.b64 | xz -d > KBLUELEAF_STAGE0_5_FIELD_MISMATCH_PAIRS_599_v0.1.csv
+          rm KBLUELEAF_STAGE0_5_FIELD_MISMATCH_PAIRS_599_v0.1.csv.xz.b64
+          echo '1bd8e52eec9831372cdc292c4f7147c605c8c2499293fbe8a96bdf8f1832b921  KBLUELEAF_STAGE0_5_FIELD_MISMATCH_PAIRS_599_v0.1.csv' | sha256sum -c -
+          cat > OFFICIAL_JRA_FOUR_HORSE_FORM_SENTINEL_FIXTURE_v0.1.csv.xz.b64 <<'EOF_STAGE05_FIXTURE'
+          /Td6WFoAAATm1rRGAgAhARwAAAAQz1jM4A+SA7RdADQbyqwLlM2QMn0mlaz2Kqy3ezPoQ8E9oTDRng8KMIcZRS/SOi8KF556B45YwpmOIBETZCAE72RLkHMz
+          kvNwINrs+A4gU76ok9v6sIfksSvRrK7BS8O9hQOCM2iA48jQLfEnuPBNNNKAXMK5FaqqOzmmwWUWY1TXZ1DuuulQuG9iE1YqrmQQ9zeknW+lkNjgf5edWwkz
+          NxSHQB3VsQCTxjY0KDJNLqSSzh9aP1K0SoyNTExpZYRGt6J15UbAZa7WXF7ibbRbFNx0xpOn0a+0213t1fey6zmWwPElm44JMltQbl0NVIOnNpSJjscsMhmX
+          fpkDha+Eu7AikpjZhzAfur+IlMDALnOOEJ+5BvSUl8CoDkLzNXeA+99cAi0/Vz3F3c7y+pcCkqx45zJYnKEEYAk4IxLbupjoeCcJQDQJa9ra5v7+N6FqL8oU
+          WiOhaeRhMDtBOhy7HwvquAPPMiki+7nRiGjzyE5Xr/PWt6r/GvNosxHHMhX/k6O/vLl0nH8JreMp3k/LImsyHQ5hGT8YNX/0UDKyV4ffyOyHvXRWhD7IEpSL
+          nI0LMBODo9R92Cr/u79DXWQtN55vQzmiumhd6FE/riQ1dR1f8kstqwZRIXgFB6+bW+7Y0ELHWYz9wJG6k6KA5goO+CkhVXQjBXZes1I1UF2QjmJZ0BkohxT6
+          pkAiDKwK3yXui8+i2hlV6Ok1b/6897qJ99DCps94d9bOcWILAFxc18zH/oeiQF2MEGsNF7DMiPMQud+UiNKbe5CgGyt15FQVX6+38khiEXfYGfaptnlfn6Kl
+          HNv2Ae2Tvrqf8qniPrH/ayKFU9/7Fh3RO0ugdhSEjmJ3PJIJ97khgSAoYiAQFPSLTx4us05Mcl9kw/pZrqNMiOZW8P4WFkz1dQtAKirQ9t6UMMvlmCA1bqlj
+          R2rvX0GS6q/keteF7x6jA01I7n7N3z7kGJO0kv10wEl4rlyF786lZ5zYRXIElfxsTc0SD81Blc8B9K1SdIqNJL4fEZxweSMK9CHXDp03D+hDo3h8x3NdSv4g
+          POb5eNdXFj5dOYNL0DCOd78h4OaJooXOPWXMSSbthVXWGXuP+2JcTgMPkjYxg19iIDzO64Q1M6zstQtmHWAOoyEFm9iUKF4f+vRmkfPaQI255HVq9o3qqj/V
+          KrvFxvBQ9TJVALTSwdtkOkuB/AmMVro2XIK9VYQyStmfIJGk6/Fhj6jvcXkD14uJEQu7w6L+l5NZ1IbLTGsP+bz7nv0x+wSvYXqqEIoD+AAz5Drm+rqOQQAB
+          0AeTHwAA5b7E27HEZ/sCAAAAAARZWg==
+          EOF_STAGE05_FIXTURE
+          base64 -d OFFICIAL_JRA_FOUR_HORSE_FORM_SENTINEL_FIXTURE_v0.1.csv.xz.b64 | xz -d > OFFICIAL_JRA_FOUR_HORSE_FORM_SENTINEL_FIXTURE_v0.1.csv
+          rm OFFICIAL_JRA_FOUR_HORSE_FORM_SENTINEL_FIXTURE_v0.1.csv.xz.b64
+          echo '1e085f3af04e530a4daed42237ac8ed29c8cd2d87f5deb368b38694542f926f6  OFFICIAL_JRA_FOUR_HORSE_FORM_SENTINEL_FIXTURE_v0.1.csv' | sha256sum -c -
+          cat > WIN5_KBLUELEAF_FIELD_SIZE_SEMANTICS_ERRATUM_LOCK_20260910_v0.1.md.xz.b64 <<'EOF_STAGE05_LOCK'
+          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
+          EOF_STAGE05_LOCK
+          base64 -d WIN5_KBLUELEAF_FIELD_SIZE_SEMANTICS_ERRATUM_LOCK_20260910_v0.1.md.xz.b64 | xz -d > WIN5_KBLUELEAF_FIELD_SIZE_SEMANTICS_ERRATUM_LOCK_20260910_v0.1.md
+          rm WIN5_KBLUELEAF_FIELD_SIZE_SEMANTICS_ERRATUM_LOCK_20260910_v0.1.md.xz.b64
+          echo '6ba870391258f1398393c28b796bdf2e71b076232583d39b3f868a63963c5110  WIN5_KBLUELEAF_FIELD_SIZE_SEMANTICS_ERRATUM_LOCK_20260910_v0.1.md' | sha256sum -c -
+
+      - name: Run Stage0.5b regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python test_extract_kblueleaf_stage0_5b_field_semantics_evidence.py
+
+      - name: Download exact public KBlueLeaf DB once
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --connect-timeout 30 \
+            --output all_races_2005-2024.db \
+            'https://huggingface.co/datasets/KBlueLeaf/jp-racing-horse/resolve/main/all_races_2005-2024.db?download=true'
+          test "$(stat -c%s all_races_2005-2024.db)" = "717680640"
+          echo '7828af205838d148f6bca70870d4ab152ea6b54430093dcf3159d23583252eab  all_races_2005-2024.db' | sha256sum -c -
+
+      - name: Export 599-pair field semantics evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf stage0_5b_out
+          python extract_kblueleaf_stage0_5b_field_semantics_evidence.py \
+            all_races_2005-2024.db \
+            KBLUELEAF_STAGE0_5_FIELD_MISMATCH_PAIRS_599_v0.1.csv \
+            OFFICIAL_JRA_FOUR_HORSE_FORM_SENTINEL_FIXTURE_v0.1.csv \
+            -o stage0_5b_out
+          cp WIN5_KBLUELEAF_FIELD_SIZE_SEMANTICS_ERRATUM_LOCK_20260910_v0.1.md stage0_5b_out/
+
+      - name: Assert predictive firewall remains closed
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f stage0_5b_out/KBLUELEAF_STAGE0_5B_FIELD_SEMANTICS_REPORT_v0.1.json
+          python - <<'PY2'
+          import json
+          p='stage0_5b_out/KBLUELEAF_STAGE0_5B_FIELD_SEMANTICS_REPORT_v0.1.json'
+          x=json.load(open(p,encoding='utf-8'))
+          g=x.get('governance',{})
+          assert g.get('predictive_metrics_read') is False
+          assert g.get('tail293_top1_top2_mrr_read') is False
+          assert g.get('tail293_form_computed') is False
+          assert g.get('production_change')=='NONE'
+          print('FIREWALL PASS')
+          PY2
+
+      - name: Upload small Stage0.5b evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kblueleaf-stage0-v0-5b-field-semantics-evidence
+          path: stage0_5b_out/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Remove raw DB
+        if: always()
+        shell: bash
+        run: rm -f all_races_2005-2024.db
