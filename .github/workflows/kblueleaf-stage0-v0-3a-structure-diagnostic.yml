@@ -1,0 +1,94 @@
+name: KBlueLeaf Stage0 v0.3a structure diagnostic
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Reconstruct frozen source-only diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > diagnose.py.xz.b64 <<'EOF_SCRIPT'
+          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
+          EOF_SCRIPT
+          base64 -d diagnose.py.xz.b64 | xz -d > diagnose.py
+          rm diagnose.py.xz.b64
+          cat > target949.txt.xz.b64 <<'EOF_IDS'
+          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
+          EOF_IDS
+          base64 -d target949.txt.xz.b64 | xz -d > target949.txt
+          rm target949.txt.xz.b64
+          echo 'dd633bc32462ff9220bc02cb49b11acb0bfce67049063329a4b9975639d7328f  diagnose.py' | sha256sum -c -
+          echo '5b841491054b726c8376dfd43ef5c8341a92c6e6398d8e716e872c63519d4365  target949.txt' | sha256sum -c -
+      - name: Download exact public KBlueLeaf DB once
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --connect-timeout 30 \
+            --output all_races_2005-2024.db \
+            'https://huggingface.co/datasets/KBlueLeaf/jp-racing-horse/resolve/main/all_races_2005-2024.db?download=true'
+          test "$(stat -c%s all_races_2005-2024.db)" = "717680640"
+          echo '7828af205838d148f6bca70870d4ab152ea6b54430093dcf3159d23583252eab  all_races_2005-2024.db' | sha256sum -c -
+      - name: Run source-only structure diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf diag_out
+          python diagnose.py all_races_2005-2024.db target949.txt -o diag_out
+      - name: Upload small diagnostic evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kblueleaf-stage0-v0-3a-structure-diagnostic
+          path: diag_out/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Remove raw DB
+        if: always()
+        shell: bash
+        run: rm -f all_races_2005-2024.db
