@@ -1,0 +1,327 @@
+name: Static PL Source Universe + Stable-ID Gap Inventory v0.7 Relevant Stable-ID Guard
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-universe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reconstruct frozen source-only programs
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > extract_zennifa_static_pl_source_evidence_v0_2.py.xz.b64 <<'EOF_ASSET_1'
+          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
+          EOF_ASSET_1
+          base64 -d extract_zennifa_static_pl_source_evidence_v0_2.py.xz.b64 | xz -d > extract_zennifa_static_pl_source_evidence_v0_2.py
+          rm extract_zennifa_static_pl_source_evidence_v0_2.py.xz.b64
+          echo 'ab0611fb91813081534d0695047663d4454576b80ac3bb9266fc2b5656031de6  extract_zennifa_static_pl_source_evidence_v0_2.py' | sha256sum -c -
+          cat > test_extract_zennifa_static_pl_source_evidence_v0_2.py.xz.b64 <<'EOF_ASSET_2'
+          /Td6WFoAAATm1rRGAgAhARwAAAAQz1jM4A6+BktdADSbSme4Ujxzzbf17JJwEzKe+KArjzAl1mQg/VQvT46Idsr7rkHUMz3G/NRU2UNEPV9D4bmfib+rDPue
+          YrAyZnb3LPEoFpS2g3hTSiiqTEbv3+g+nKAEYXb8O65Ob273raYjLUueRqITfaOGY0duTRDwmlJnHtRdan2e39xs+blDtztB99zyTw6pzo/1a9LflkDXto45
+          1pVq1oVlzjnlu3TiFCJBiLekareDJpmxOwfD3Bt+VfPyhOz2gB+rC4lN06ODNHxuD1LbNyu2sy6jrjxSgFTerIm3/37BCRDbBpoNP6cKIdg2POvADetvwLtj
+          GBiUMX+hQeRpaJmJZcsnCMPghkvfOF1cANUChNnUDdnWV627kFcuAaKOpBxdT7bwpvTHYUb4uZqNcIZqZS2f+3Tw3H8YHp6ohwczxygKMrqdH+TPaMeolE4d
+          a7Jj7lFHPuYdohEPCyHP8TNodZ4iSfVraKmTY8NJniIsvJ0hfs+oR3Rr2mInaUpeIUCvUn4JOFcwyAhHcmxSRKLeqdM1VoAhgqxZX7g4KN0C9yytpkEnKmQS
+          qRRFXIZOEt7h/jUj46SHWRdlgxLz68UtkUmxhEmCXja+CF4tnYGNfz2yrTvHvJZwAvptySE56MB+AfZwSdpbrTq3M0s1rogIfe84C3gSxzTwHLkw5EG5Od/T
+          9ObfjtEgTd1lKAqc6C9EBmbGbGrYFda5cKYb2O5uqoJiO8CPtzNQyA+ZPPCIjd45WQa+fuYwZIi7FPkiHeJNDbt9RRumKRPNdr2w1veOFuow7fJ1IyLOqk39
+          4q9Zan+2/aM77N8NkXqnhd+PN5QkscUAJjmCSRD71NyT+UW1QnlrUU/30RVYPSAeOse+7Bpgf6xHjW0tyZ8jXGA8Az+h1gdyGHUKqxxDdk+1GwttFN9+AWmb
+          WyFEoc5XmyskNsCLatIr8+yINArgPqohSMlsawAeVwYhe/xOoqHlfueMtMms3ChBL428nznAQpGHXVE09KQAzXz1UDqVU1rIw0C/qTlU0890GUl+5ib81Vv9
+          6vF1iefiZNBrL3SE9oG6NtdL6vsQYMrOgoef6OPO2Es1JCGdougUqx1rOUCCmrFHgGFjnRdGeNa+bojumelGtfmK8Kn3r1RZYfybVvJLF/d5HTkYesqI+orz
+          S4C1vUgvJEG7vwiwLGTLbRvT/IypXMgpndqAhYOKuY9NlIrMJGsSIcLJOnRAkxRlw5RJJ4Ro/+L+l/TKQHeGQ+BGwNV6YvWlf9xuDu966UIoFQGeNDI0SNdW
+          JgVlnvPoEaWIqXG7MtMpo/p3v4VDre+70ZrH17E8caYXZna0+/OYxTwotVJlQfaNXgQOvmGhGFbIBk2EYstJd36fOayFrxi+wn2TfnOfyTlI6PbbqIW5+q47
+          Vmygt9vGwnM3KvalwdYt2+RfKXmykyvWuhXTwYlK2vq3pzSSl6f+PaFLPCcoUtoUZOitgTiFAAZwDfsDzAFj8Hz7IMc1CF4qiq/6KRIK/iOmhLxSrLpNvB2y
+          JgnVTE5RBt7QSmJnPEt8WQjBH+N2pViwEtf7IWodQ5/H+D0xJ8FTlhffy6J2BKx3g+ApXjLMmz+lLAsyUty9NjPNvqX/DmJeSNBVTd6Td2Zk1ceFrac001gT
+          DNN3tek+vywSpcG7YDu/SGbIN29DwOlxRHNFu2VM+fIZds5qcPk38b4Rp5R4voFOXLJq15e5z+yi0zk03eCzw3vXhiIFtR+95gn9GWbnQDvA+RkIBVs4SDPL
+          wSYjz/3oKHgX7XafllEmkED7IlPbbA58n3Wdad2W3cL62+lgA1n5PCddTYPSB6OpVzoJX6V5QP/Z062iwNxdQKMKdR1N9UOfNbMlzGDlbz5oX+dmJ8+FYTVQ
+          JchzwYnJeW6vJn8TajWf1SXEP96IPIrIVgBabnuUftPK1q1dZXRjChOWi41x8WrbXR6X8o+yqz52Q83NQbsdVggBWt3aGoQMu2DV3K5SUiTyW5qhZb9MLvLF
+          zZ9mF8sw4fwRJFhOQXQ5GBdGUIniz+YUHYOUWnyTHwp2LJQJPOdzQPn4GaQnUiYeg3dGloBp5x4S5eibN9nPuo1cAVZjv6fAmPsu1PHEablZoroeaYI59G80
+          0NNcBCvsFKfQaOs6dzBZnWfUINtgAAAAgQsQiLJ5LogAAecMvx0AAAl8C1yxxGf7AgAAAAAEWVo=
+          EOF_ASSET_2
+          base64 -d test_extract_zennifa_static_pl_source_evidence_v0_2.py.xz.b64 | xz -d > test_extract_zennifa_static_pl_source_evidence_v0_2.py
+          rm test_extract_zennifa_static_pl_source_evidence_v0_2.py.xz.b64
+          echo '32db64dc6ae689a5be6dcb7b3964af639b8e514352f42351e0939c0377c7d981  test_extract_zennifa_static_pl_source_evidence_v0_2.py' | sha256sum -c -
+          cat > build_static_pl_expected_flat_universe_v0_2_hashguard.py.xz.b64 <<'EOF_ASSET_3B'
+          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
+          EOF_ASSET_3B
+          base64 -d build_static_pl_expected_flat_universe_v0_2_hashguard.py.xz.b64 | xz -d > build_static_pl_expected_flat_universe_v0_2_hashguard.py
+          rm build_static_pl_expected_flat_universe_v0_2_hashguard.py.xz.b64
+          echo '3e7bb74a77f600d9d54b70fa8693a4f63c236246341ac9b625a4603c919cc9be  build_static_pl_expected_flat_universe_v0_2_hashguard.py' | sha256sum -c -
+          python -m py_compile extract_zennifa_static_pl_source_evidence_v0_2.py build_static_pl_expected_flat_universe_v0_2_hashguard.py
+          python -W error::ResourceWarning -m unittest -q test_extract_zennifa_static_pl_source_evidence_v0_2.py
+
+      - name: Reconstruct Horse-side gap inventory + recovery summarizer
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > inventory_static_pl_horseside_source_gaps_v0_5_relevant_prefilter_idguard.py.xz.b64 <<'EOF_INV_V05'
+          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
+          EOF_INV_V05
+          base64 -d inventory_static_pl_horseside_source_gaps_v0_5_relevant_prefilter_idguard.py.xz.b64 | xz -d > inventory_static_pl_horseside_source_gaps_v0_5_relevant_prefilter_idguard.py
+          rm inventory_static_pl_horseside_source_gaps_v0_5_relevant_prefilter_idguard.py.xz.b64
+          echo '4ff48b3f544ed585a128128a2484e5feacf15f383b298719fab00470d93637f5  inventory_static_pl_horseside_source_gaps_v0_5_relevant_prefilter_idguard.py' | sha256sum -c -
+          python -m py_compile inventory_static_pl_horseside_source_gaps_v0_5_relevant_prefilter_idguard.py
+          cat > summarize_static_pl_recovery_workload_v0_1.py.xz.b64 <<'EOF_SUM_V01'
+          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
+          EOF_SUM_V01
+          base64 -d summarize_static_pl_recovery_workload_v0_1.py.xz.b64 | xz -d > summarize_static_pl_recovery_workload_v0_1.py
+          rm summarize_static_pl_recovery_workload_v0_1.py.xz.b64
+          echo '12f9ebbe34b241ea5e9d352f58efa32512c6c778e54e9a2ca2f931fa45eea61e  summarize_static_pl_recovery_workload_v0_1.py' | sha256sum -c -
+          cat > test_summarize_static_pl_recovery_workload_v0_1.py.xz.b64 <<'EOF_SUM_TEST'
+          /Td6WFoAAATm1rRGAgAhARYAAAB0L+Wj4AXMArNdADSbSme4Ujx1uXHArTulrCUwhizSosxi2ymZWfKaejpWvbqKPb8buWhfCwh1UemSfg8Az4pU1sdHfGfT
+          sp7xdf4/TdBNGZSmpaCQ6o4PVizojBdQo3ljWxugnMmxPNo9KIxiIBnMmYm0k+5ZeuzIRJ5BB5OkZnuW5zciqJ8cY8ow1hS7IPHMO8UxnGpEXZuO88Cgxn62
+          qz0KEzSDoAr47VYeoHtKZCUDfX1iEqJyK6Ip995dVgU7tLRC5XEhkMFordp53C1U7sXS41XRiUp5adltCp3ayXq9PCDmGQRAXT/jXDQdHYFs5/jay0QjLio0
+          KXkN3upzWQxvzZiGZs08Rr8b89+tPzCan80bvkK4k+D4nkUcRzttpA/k6QytXkAAOaGI5nuzPnbArqCCap/9vEaTlUtm6L0oPY7nnDbdakdENSzhioOglNz6
+          yfLeZ/wtLegVftc6FoDl57kO3APkYI5HZumAsUUXb80WhH5LlYDtesbWuIH/2LotnZCSpAVn3+ZuauhuO5NRI/KEs2Z3A2gvpoV9uK1U48rL+NiWUt2VSUYS
+          KnWITxVTTLhKDAxRds/70UBov68qTNcRBQsWRGM9QZekZz1HPk2hfCtsiSduXep1TC8iZVvFWRr1EqJWkOryAfYwHtvbVas38YbryGuJC9rKJyHZWjuKTsDi
+          tSvMxZcj5/JnrzLGrP0yx+Rhcrwn1DSy+UBPsqT6ix5Gk76QfmS1IayDeYOMIHyRwEfSgwkOAeojjvyL1y9UqSt+DRO3cti44iLQ/H2eWf0NeCcxf/XsbypN
+          TPQ68w7xs1vSRf24BCnrmhcmbSUNJ487IMhsyCt+qeH+07Ta2ZtGxnp+5S6FpqssiG4kqURy/k7aD6I1Jk8AxOgMecEeKueE+dSuEMv8sjZ5NnvbjsiNUgz/
+          dEwAANf0X4XkuTGOAAHPBc0LAAD2LnljscRn+wIAAAAABFla
+          EOF_SUM_TEST
+          base64 -d test_summarize_static_pl_recovery_workload_v0_1.py.xz.b64 | xz -d > test_summarize_static_pl_recovery_workload_v0_1.py
+          rm test_summarize_static_pl_recovery_workload_v0_1.py.xz.b64
+          echo '196cf22a5b3aea71a9405c24f00d123eadd12938944d712d92ef18bd1f7e7373  test_summarize_static_pl_recovery_workload_v0_1.py' | sha256sum -c -
+          python -m py_compile summarize_static_pl_recovery_workload_v0_1.py test_summarize_static_pl_recovery_workload_v0_1.py
+          python test_summarize_static_pl_recovery_workload_v0_1.py
+
+      - name: Download pinned independent zennifa archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --connect-timeout 30 \
+            -o zennifa_archive.zip \
+            'https://raw.githubusercontent.com/zennifa317/keiba_AI/37da3b7ea875405f30aef2084fdc710e6665ccd5/data/archive.zip'
+          test "$(stat -c%s zennifa_archive.zip)" = '100243772'
+          test "$(git hash-object zennifa_archive.zip)" = '0548946181816990eb8b182b99f3fd48d4c2c8e9'
+
+      - name: Download pinned apiss2 annual race-ID resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p apiss2_ids
+          curl --fail --location --retry 4 -o apiss2_ids/2005.txt 'https://raw.githubusercontent.com/apiss2/scraping/b4e18a83629e36361dc571e8d51c012e6724eab2/resources/netkeiba_race_id/2005.txt'
+          test "$(git hash-object apiss2_ids/2005.txt)" = '5d6c10bd90021e48918fc9f7c993323122f3ca46'
+          curl --fail --location --retry 4 -o apiss2_ids/2006.txt 'https://raw.githubusercontent.com/apiss2/scraping/b4e18a83629e36361dc571e8d51c012e6724eab2/resources/netkeiba_race_id/2006.txt'
+          test "$(git hash-object apiss2_ids/2006.txt)" = '827ce4c9985a7475878a799c76d9221f1544a696'
+          curl --fail --location --retry 4 -o apiss2_ids/2007.txt 'https://raw.githubusercontent.com/apiss2/scraping/b4e18a83629e36361dc571e8d51c012e6724eab2/resources/netkeiba_race_id/2007.txt'
+          test "$(git hash-object apiss2_ids/2007.txt)" = 'd4a1353e745655c194efd0610aa92a80aa753698'
+          curl --fail --location --retry 4 -o apiss2_ids/2008.txt 'https://raw.githubusercontent.com/apiss2/scraping/b4e18a83629e36361dc571e8d51c012e6724eab2/resources/netkeiba_race_id/2008.txt'
+          test "$(git hash-object apiss2_ids/2008.txt)" = 'c478037493b497f3f909e5752da01503f50add9c'
+          curl --fail --location --retry 4 -o apiss2_ids/2009.txt 'https://raw.githubusercontent.com/apiss2/scraping/b4e18a83629e36361dc571e8d51c012e6724eab2/resources/netkeiba_race_id/2009.txt'
+          test "$(git hash-object apiss2_ids/2009.txt)" = '8d3a5d45b4e4f2d7f239b1b6c9a940ffcb08385e'
+          curl --fail --location --retry 4 -o apiss2_ids/2010.txt 'https://raw.githubusercontent.com/apiss2/scraping/b4e18a83629e36361dc571e8d51c012e6724eab2/resources/netkeiba_race_id/2010.txt'
+          test "$(git hash-object apiss2_ids/2010.txt)" = '1409bec2b1485aeab172a80959c1d6aed1a4aeb7'
+          curl --fail --location --retry 4 -o apiss2_ids/2011.txt 'https://raw.githubusercontent.com/apiss2/scraping/b4e18a83629e36361dc571e8d51c012e6724eab2/resources/netkeiba_race_id/2011.txt'
+          test "$(git hash-object apiss2_ids/2011.txt)" = 'ae858e41858485b7b75ebe8ba4cc28196ab0ad35'
+          curl --fail --location --retry 4 -o apiss2_ids/2012.txt 'https://raw.githubusercontent.com/apiss2/scraping/b4e18a83629e36361dc571e8d51c012e6724eab2/resources/netkeiba_race_id/2012.txt'
+          test "$(git hash-object apiss2_ids/2012.txt)" = 'b2d494453d9305e4d2aeeb6b55ecbc37b1c1e2cf'
+          curl --fail --location --retry 4 -o apiss2_ids/2013.txt 'https://raw.githubusercontent.com/apiss2/scraping/b4e18a83629e36361dc571e8d51c012e6724eab2/resources/netkeiba_race_id/2013.txt'
+          test "$(git hash-object apiss2_ids/2013.txt)" = '8a21d53483fe7871133a52f7e9b54ca331548ec9'
+          curl --fail --location --retry 4 -o apiss2_ids/2014.txt 'https://raw.githubusercontent.com/apiss2/scraping/b4e18a83629e36361dc571e8d51c012e6724eab2/resources/netkeiba_race_id/2014.txt'
+          test "$(git hash-object apiss2_ids/2014.txt)" = '263d2acf0eb5eec7736aed5d893bb6ed2acbffe9'
+          curl --fail --location --retry 4 -o apiss2_ids/2015.txt 'https://raw.githubusercontent.com/apiss2/scraping/b4e18a83629e36361dc571e8d51c012e6724eab2/resources/netkeiba_race_id/2015.txt'
+          test "$(git hash-object apiss2_ids/2015.txt)" = '253a049edc107a11bcbf0fac708cd613857728b0'
+          curl --fail --location --retry 4 -o apiss2_ids/2016.txt 'https://raw.githubusercontent.com/apiss2/scraping/b4e18a83629e36361dc571e8d51c012e6724eab2/resources/netkeiba_race_id/2016.txt'
+          test "$(git hash-object apiss2_ids/2016.txt)" = '56c0c0bfc225401ba968a66dca78d0794aa96a56'
+          curl --fail --location --retry 4 -o apiss2_ids/2017.txt 'https://raw.githubusercontent.com/apiss2/scraping/b4e18a83629e36361dc571e8d51c012e6724eab2/resources/netkeiba_race_id/2017.txt'
+          test "$(git hash-object apiss2_ids/2017.txt)" = 'edc8f8605eb53864835ebfb2f36f4327e38b8890'
+          curl --fail --location --retry 4 -o apiss2_ids/2018.txt 'https://raw.githubusercontent.com/apiss2/scraping/b4e18a83629e36361dc571e8d51c012e6724eab2/resources/netkeiba_race_id/2018.txt'
+          test "$(git hash-object apiss2_ids/2018.txt)" = '538189d67533b371f64798b49b08a52289cc3599'
+          curl --fail --location --retry 4 -o apiss2_ids/2019.txt 'https://raw.githubusercontent.com/apiss2/scraping/b4e18a83629e36361dc571e8d51c012e6724eab2/resources/netkeiba_race_id/2019.txt'
+          test "$(git hash-object apiss2_ids/2019.txt)" = '51867fab9313af833f53383161994b924ac13834'
+          curl --fail --location --retry 4 -o apiss2_ids/2020.txt 'https://raw.githubusercontent.com/apiss2/scraping/b4e18a83629e36361dc571e8d51c012e6724eab2/resources/netkeiba_race_id/2020.txt'
+          test "$(git hash-object apiss2_ids/2020.txt)" = 'a3aa2445645f436e929ac11c8b3548e589620ab0'
+
+      - name: Extract status-aware source evidence with complete-line UTF8 adapter
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf source_evidence universe_out
+          python extract_zennifa_static_pl_source_evidence_v0_2.py zennifa_archive.zip -o source_evidence
+
+      - name: Build exact expected flat universe 2005-2020
+        shell: bash
+        run: |
+          set -euo pipefail
+          python build_static_pl_expected_flat_universe_v0_2_hashguard.py \
+            apiss2_ids \
+            source_evidence/ZENNIFA_JRA_ALL_RACE_IDS_2005_2020_v0.1.csv \
+            source_evidence/ZENNIFA_JRA_OBSTACLE_RACE_IDS_2005_2020_v0.1.csv \
+            -o universe_out
+          mkdir -p static_pl_source_bundle
+          cp -a source_evidence universe_out static_pl_source_bundle/
+          (cd static_pl_source_bundle && find . -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+
+      - name: Download exact frozen public KBlueLeaf DB
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --connect-timeout 30 \
+            --output all_races_2005-2024.db \
+            'https://huggingface.co/datasets/KBlueLeaf/jp-racing-horse/resolve/main/all_races_2005-2024.db?download=true'
+          test "$(stat -c%s all_races_2005-2024.db)" = "717680640"
+          echo '7828af205838d148f6bca70870d4ab152ea6b54430093dcf3159d23583252eab  all_races_2005-2024.db' | sha256sum -c -
+
+      - name: Inventory Horse-side stable-ID roster gaps without predictive scoring
+        shell: bash
+        run: |
+          set -euo pipefail
+          python inventory_static_pl_horseside_source_gaps_v0_5_relevant_prefilter_idguard.py \
+            all_races_2005-2024.db \
+            universe_out/EXPECTED_JRA_FLAT_RACE_IDS_2005_2020_STATIC_PL_v0.2.csv \
+            --formal-db-sha \
+            -o static_pl_source_bundle/STATIC_PL_HORSESIDE_SOURCE_GAP_INVENTORY_v0.5.csv \
+            | tee static_pl_source_bundle/STATIC_PL_HORSESIDE_SOURCE_GAP_INVENTORY_REPORT_v0.5.json
+          python - <<'PY_INV_CHECK'
+          import json
+          p='static_pl_source_bundle/STATIC_PL_HORSESIDE_SOURCE_GAP_INVENTORY_REPORT_v0.5.json'
+          x=json.load(open(p,encoding='utf-8'))
+          assert x['status']=='PASS_STATIC_PL_SOURCE_GAP_INVENTORY'
+          assert x['predictive_metrics_read'] is False
+          assert x['target_labels_read'] is False
+          print('HORSESIDE GAP INVENTORY COMPLETE:', x['flagged_races'], 'flagged races')
+          PY_INV_CHECK
+          python summarize_static_pl_recovery_workload_v0_1.py \
+            static_pl_source_bundle/STATIC_PL_HORSESIDE_SOURCE_GAP_INVENTORY_v0.5.csv \
+            -o static_pl_source_bundle/STATIC_PL_RECOVERY_WORKLOAD_REPORT_v0.1.json \
+            --flagged-csv static_pl_source_bundle/STATIC_PL_RECOVERY_WORKLOAD_FLAGGED_v0.1.csv
+          (cd static_pl_source_bundle && find . -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+
+      - name: Remove raw KBlueLeaf DB
+        if: always()
+        shell: bash
+        run: rm -f all_races_2005-2024.db
+
+      - name: Delete large raw archive
+        if: always()
+        shell: bash
+        run: rm -f zennifa_archive.zip
+
+      - name: Upload source-only evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-pl-source-universe-and-horseside-inventory-v0-7
+          path: static_pl_source_bundle/
+          if-no-files-found: error
+          retention-days: 30
