@@ -1,0 +1,207 @@
+name: KBlueLeaf Stage1 Course Distance Structure Diagnostic v0.5 Raw Surface Mapping
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/kblueleaf-stage1-course-distance-structure-diagnostic-v0-5-raw-surface-mapping.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout audit repository
+        uses: actions/checkout@v4
+
+      - name: Download frozen Stage0.8c full949 shard artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: stage0-8-shard-*
+          path: stage0_8_artifacts
+          merge-multiple: false
+          repository: annihilator7777777-beep/win5-fulljra-audit
+          run-id: 34445336039
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify outcome-free SAFE949 identity geometry
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(find stage0_8_artifacts -name 'STAGE0_8_SHARD*_PROFILES.csv' | wc -l)" = "4"
+          test "$(find stage0_8_artifacts -name 'STAGE0_8_SHARD*_FAILURES.csv' | wc -l)" = "4"
+
+      - name: Download exact frozen public KBlueLeaf DB
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --connect-timeout 30 \
+            --output all_races_2005-2024.db \
+            'https://huggingface.co/datasets/KBlueLeaf/jp-racing-horse/resolve/main/all_races_2005-2024.db?download=true'
+          test "$(stat -c%s all_races_2005-2024.db)" = "717680640"
+          echo '7828af205838d148f6bca70870d4ab152ea6b54430093dcf3159d23583252eab  all_races_2005-2024.db' | sha256sum -c -
+
+      - name: Diagnose Horse surface-distance versus Race course-distance without Tail293 labels
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > diagnose_course_distance.py <<'PY'
+          import csv, glob, json, re, sqlite3
+          from collections import Counter
+          from pathlib import Path
+
+          DB='all_races_2005-2024.db'
+          OUT=Path('course_distance_diag_v05')
+          OUT.mkdir(exist_ok=True)
+          TARGET_HID='2006106754'
+          TARGET_RID='200905040208'
+          PAVEL_ID='2014190002'
+
+          def read_csv(p):
+              with open(p,newline='',encoding='utf-8-sig') as f:
+                  return list(csv.DictReader(f))
+
+          hids=set()
+          for p in glob.glob('stage0_8_artifacts/**/STAGE0_8_SHARD*_PROFILES.csv',recursive=True):
+              for r in read_csv(p):
+                  h=r.get('horse_id','').strip()
+                  if re.fullmatch(r'\d{10}',h): hids.add(h)
+          failures=[]
+          for p in glob.glob('stage0_8_artifacts/**/STAGE0_8_SHARD*_FAILURES.csv',recursive=True):
+              failures += read_csv(p)
+          if len(hids)!=948:
+              raise SystemExit(f'profile horse count {len(hids)} != 948')
+          if not any(r.get('horse_id','').strip()==PAVEL_ID for r in failures):
+              raise SystemExit('Pavel failure sentinel missing')
+          hids.add(PAVEL_ID)
+          if len(hids)!=949:
+              raise SystemExit(f'SAFE949 count {len(hids)} != 949')
+
+          con=sqlite3.connect(f'file:{Path(DB).resolve()}?mode=ro',uri=True)
+          pair=Counter(); dist_pair=Counter(); course_dist=Counter(); horse_surface_dist=Counter()
+          stats=Counter(); mismatches=[]; target={}
+          try:
+              if con.execute('pragma quick_check').fetchone()[0] != 'ok':
+                  raise SystemExit('DB quick_check failed')
+              for hid in sorted(hids):
+                  q=con.execute('select name,races from horse where cast(hid as text)=?',(hid,)).fetchall()
+                  if len(q)!=1:
+                      stats['horse_row_count_not_1'] += 1
+                      continue
+                  name,raw=q[0]
+                  try: rows=json.loads(raw)
+                  except Exception:
+                      stats['horse_races_invalid_json'] += 1; continue
+                  if not isinstance(rows,list):
+                      stats['horse_races_not_list'] += 1; continue
+                  for h in rows:
+                      if not isinstance(h,list) or len(h)<9: continue
+                      rid=str(h[0])
+                      if not re.fullmatch(r'20\d{10}',rid): continue
+                      # JRA venue encoded in positions 5-6 of the canonical race id.
+                      hs_raw=h[4]
+                      try:
+                          hd=int(h[5])
+                      except Exception:
+                          stats['horse_distance_nonint'] += 1; continue
+                      rq=con.execute('select place_id,course,distance,horses from race where cast(rid as text)=?',(rid,)).fetchall()
+                      if len(rq)!=1:
+                          stats['race_row_count_not_1'] += 1; continue
+                      place,course_raw,rdist,rhorses=rq[0]
+                      try: rd=int(rdist)
+                      except Exception:
+                          stats['race_distance_nonint'] += 1; continue
+                      hs_key=f'{type(hs_raw).__name__}:{hs_raw}'
+                      rc_key=f'{type(course_raw).__name__}:{course_raw}'
+                      stats['comparable_rows'] += 1
+                      pair[(hs_key,rc_key)] += 1
+                      dist_pair[(hd,rd)] += 1
+                      course_dist[rc_key] += 1
+                      horse_surface_dist[hs_key] += 1
+                      if str(hs_raw)==str(course_raw): stats['surface_raw_string_equal'] += 1
+                      if hd==rd: stats['distance_equal'] += 1
+                      if str(hs_raw)!=str(course_raw) or hd!=rd:
+                          stats['any_raw_surface_or_distance_mismatch'] += 1
+                          if len(mismatches)<5000:
+                              mismatches.append({
+                                  'horse_id':hid,'horse_name':name or '', 'race_id':rid,
+                                  'horse_surface_h4_raw':repr(hs_raw),'race_course_raw':repr(course_raw),
+                                  'horse_distance_h5':hd,'race_distance':rd,
+                                  'surface_raw_string_equal':str(hs_raw)==str(course_raw),'distance_equal':hd==rd
+                              })
+                      if hid==TARGET_HID and rid==TARGET_RID:
+                          try: decoded_horses=json.loads(rhorses)
+                          except Exception: decoded_horses=None
+                          subject=[]
+                          if isinstance(decoded_horses,list):
+                              subject=[x for x in decoded_horses if isinstance(x,list) and len(x)>=4 and str(x[0])==hid]
+                          target={
+                              'horse_id':hid,'horse_name':name or '', 'race_id':rid,
+                              'horse_place_h1':h[1],
+                              'horse_surface_h4_raw':repr(hs_raw),
+                              'horse_surface_h4_type':type(hs_raw).__name__,
+                              'horse_distance_h5':hd,
+                              'horse_field_h7':h[7],'horse_number_h8':h[8],
+                              'race_place_id':place,
+                              'race_course_raw':repr(course_raw),
+                              'race_course_type':type(course_raw).__name__,
+                              'race_distance':rd,
+                              'race_horses_outer_len':len(decoded_horses) if isinstance(decoded_horses,list) else None,
+                              'race_subject_identity_count':len(subject),
+                              'race_subject_horse_number':subject[0][3] if len(subject)==1 and len(subject[0])>=4 else None
+                          }
+              if not target:
+                  raise SystemExit('target row not found/comparable')
+          finally:
+              con.close()
+
+          report={
+              'status':'DIAGNOSTIC_ONLY_RAW_SURFACE_MAPPING',
+              'n_safe_horses':len(hids),
+              'target':target,
+              'summary':dict(stats),
+              'horse_surface_to_race_course_pairs':{f'{a}->{b}':n for (a,b),n in sorted(pair.items())},
+              'horse_distance_to_race_distance_top_pairs':{f'{a}->{b}':n for (a,b),n in dist_pair.most_common(30)},
+              'horse_surface_distribution':{str(k):v for k,v in sorted(horse_surface_dist.items())},
+              'race_course_distribution':{str(k):v for k,v in sorted(course_dist.items())},
+              'n_mismatch_rows_written':len(mismatches),
+              'governance':{
+                  'target_winner_flag_read':False,
+                  'tail293_candidate_file_read':False,
+                  'predictive_metrics_read':False,
+                  'winner_labels_read':False,
+                  'tail293_form_score_opened':False,
+                  'scoring_authorized':False,
+                  'production_change':'NONE'
+              }
+          }
+          (OUT/'COURSE_DISTANCE_STRUCTURE_REPORT.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+          fields=['horse_id','horse_name','race_id','horse_surface_h4_raw','race_course_raw','horse_distance_h5','race_distance','surface_raw_string_equal','distance_equal']
+          with open(OUT/'COURSE_DISTANCE_MISMATCH_SAMPLE.csv','w',newline='',encoding='utf-8') as f:
+              w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(mismatches)
+          print(json.dumps(report,ensure_ascii=False,indent=2))
+          PY
+          python diagnose_course_distance.py
+
+      - name: Seal diagnostic hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          find course_distance_diag_v05 -maxdepth 1 -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > course_distance_diag_v05/SHA256SUMS.txt
+
+      - name: Upload diagnostic evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: kblueleaf-stage1-course-distance-structure-diagnostic-v0-5-raw-surface-mapping
+          path: course_distance_diag_v05/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Remove raw DB
+        if: always()
+        shell: bash
+        run: rm -f all_races_2005-2024.db
