@@ -1,0 +1,275 @@
+name: KBlueLeaf Stage1 Safe949 Horse History Structure Diagnostic v0.1
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/kblueleaf-stage1-safe949-history-structure-diagnostic-v0-1.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Reconstruct SAFE949 identity-only universe
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > SAFE949.csv.xz.b64 <<'EOF_SAFE949'
+          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
+          EOF_SAFE949
+          base64 -d SAFE949.csv.xz.b64 | xz -d > WIN5_FULL_JRA_FORM_SAFE949_HORSE_IDS_20260911_v0.1.csv
+          rm SAFE949.csv.xz.b64
+          echo 'dfe8f8b7f3100ede3988364003cb4d2cc913c2ec50be13607cde6ec8e7620c3d  WIN5_FULL_JRA_FORM_SAFE949_HORSE_IDS_20260911_v0.1.csv' | sha256sum -c -
+
+      - name: Download exact frozen KBlueLeaf DB
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --connect-timeout 30 \
+            --output all_races_2005-2024.db \
+            'https://huggingface.co/datasets/KBlueLeaf/jp-racing-horse/resolve/main/all_races_2005-2024.db?download=true'
+          test "$(stat -c%s all_races_2005-2024.db)" = "717680640"
+          echo '7828af205838d148f6bca70870d4ab152ea6b54430093dcf3159d23583252eab  all_races_2005-2024.db' | sha256sum -c -
+
+      - name: Scan SAFE949 horse-history structure only
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p history_diag_out
+          python - <<'PY'
+          import csv,json,re,sqlite3,hashlib
+          from collections import Counter
+          from pathlib import Path
+
+          SAFE='WIN5_FULL_JRA_FORM_SAFE949_HORSE_IDS_20260911_v0.1.csv'
+          DB='all_races_2005-2024.db'
+          VENUES={f'{i:02d}' for i in range(1,11)}
+
+          def is_jra_rid(x):
+              s=str(x)
+              return bool(re.fullmatch(r'\d{12}',s)) and s[4:6] in VENUES
+
+          ids=list(csv.DictReader(open(SAFE,encoding='utf-8-sig')))
+          con=sqlite3.connect(DB)
+          anomalies=[]
+          horse_summary=[]
+          for r in ids:
+              hid=r['horse_id']; hname=r['horse_name']
+              q=con.execute('select name,races from horse where cast(hid as text)=?',(hid,)).fetchall()
+              if len(q)!=1:
+                  anomalies.append({
+                      'horse_id':hid,'horse_name':hname,'item_index':'',
+                      'anomaly':'HORSE_ROW_COUNT','item_type':'','item_len':'',
+                      'first_value':'','repr':repr(len(q))[:300]
+                  })
+                  horse_summary.append({'horse_id':hid,'horse_name':hname,'db_name':'','n_items':'',
+                                        'malformed_items':1,'short_jra_items':'','jra_items':'','nonjra_list_items':''})
+                  continue
+              db_name,raw=q[0]
+              try:
+                  outer=json.loads(raw)
+              except Exception as e:
+                  anomalies.append({
+                      'horse_id':hid,'horse_name':hname,'item_index':'',
+                      'anomaly':'INVALID_JSON','item_type':type(raw).__name__,'item_len':'',
+                      'first_value':'','repr':repr(str(e))[:300]
+                  })
+                  horse_summary.append({'horse_id':hid,'horse_name':hname,'db_name':db_name or '','n_items':'',
+                                        'malformed_items':1,'short_jra_items':'','jra_items':'','nonjra_list_items':''})
+                  continue
+              if not isinstance(outer,list) or not outer or not isinstance(outer[0],list):
+                  anomalies.append({
+                      'horse_id':hid,'horse_name':hname,'item_index':'',
+                      'anomaly':'OUTER_SHAPE','item_type':type(outer).__name__,'item_len':len(outer) if hasattr(outer,'__len__') else '',
+                      'first_value':'','repr':repr(outer)[:300]
+                  })
+                  horse_summary.append({'horse_id':hid,'horse_name':hname,'db_name':db_name or '','n_items':'',
+                                        'malformed_items':1,'short_jra_items':'','jra_items':'','nonjra_list_items':''})
+                  continue
+
+              rows=outer[0]
+              malformed=shortj=jra=nonj=0
+              for i,h in enumerate(rows):
+                  if not isinstance(h,list) or not h:
+                      malformed += 1
+                      anomalies.append({
+                          'horse_id':hid,'horse_name':hname,'item_index':i,
+                          'anomaly':'MALFORMED_HISTORY_ITEM','item_type':type(h).__name__,
+                          'item_len':len(h) if hasattr(h,'__len__') else '',
+                          'first_value':'','repr':repr(h)[:300]
+                      })
+                      continue
+                  rid=str(h[0])
+                  if is_jra_rid(rid):
+                      jra += 1
+                      if len(h)<18:
+                          shortj += 1
+                          anomalies.append({
+                              'horse_id':hid,'horse_name':hname,'item_index':i,
+                              'anomaly':'SHORT_JRA_HISTORY','item_type':'list','item_len':len(h),
+                              'first_value':rid,'repr':repr(h)[:300]
+                          })
+                  else:
+                      nonj += 1
+              horse_summary.append({
+                  'horse_id':hid,'horse_name':hname,'db_name':db_name or '',
+                  'n_items':len(rows),'malformed_items':malformed,'short_jra_items':shortj,
+                  'jra_items':jra,'nonjra_list_items':nonj
+              })
+
+          fields=['horse_id','horse_name','item_index','anomaly','item_type','item_len','first_value','repr']
+          with open('history_diag_out/SAFE949_HISTORY_ANOMALIES.csv','w',newline='',encoding='utf-8') as f:
+              w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(anomalies)
+          sf=['horse_id','horse_name','db_name','n_items','malformed_items','short_jra_items','jra_items','nonjra_list_items']
+          with open('history_diag_out/SAFE949_HISTORY_SUMMARY.csv','w',newline='',encoding='utf-8') as f:
+              w=csv.DictWriter(f,fieldnames=sf); w.writeheader(); w.writerows(horse_summary)
+
+          counts=Counter(x['anomaly'] for x in anomalies)
+          report={
+              'status':'DIAGNOSTIC_ONLY',
+              'safe949_sha256':'dfe8f8b7f3100ede3988364003cb4d2cc913c2ec50be13607cde6ec8e7620c3d',
+              'n_safe_horses':len(ids),
+              'n_anomaly_rows':len(anomalies),
+              'anomaly_counts':dict(counts),
+              'target_horse_2011106076':[x for x in anomalies if x['horse_id']=='2011106076'],
+              'governance':{
+                  'winner_labels_read':False,
+                  'predictive_metrics_read':False,
+                  'tail293_form_score_opened':False,
+                  'scoring_authorized':False,
+                  'production_change':'NONE'
+              }
+          }
+          Path('history_diag_out/SAFE949_HISTORY_STRUCTURE_REPORT.json').write_text(
+              json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+          print(json.dumps(report,ensure_ascii=False,indent=2))
+          PY
+
+      - name: Seal diagnostic hashes
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -d history_diag_out ]; then
+            find history_diag_out -maxdepth 1 -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > history_diag_out/SHA256SUMS.txt
+          fi
+
+      - name: Upload diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kblueleaf-stage1-safe949-history-structure-diagnostic
+          path: history_diag_out/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Remove raw DB
+        if: always()
+        shell: bash
+        run: rm -f all_races_2005-2024.db
