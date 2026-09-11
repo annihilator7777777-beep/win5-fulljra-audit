@@ -1,0 +1,112 @@
+name: Static PL Zennifa Race Result Format Diagnostic v0.1
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose-format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download pinned independent zennifa archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --connect-timeout 30 \
+            -o zennifa_archive.zip \
+            'https://raw.githubusercontent.com/zennifa317/keiba_AI/37da3b7ea875405f30aef2084fdc710e6665ccd5/data/archive.zip'
+          test "$(stat -c%s zennifa_archive.zip)" = '100243772'
+          test "$(git hash-object zennifa_archive.zip)" = '0548946181816990eb8b182b99f3fd48d4c2c8e9'
+
+      - name: Inspect archive member structure and race_result header bytes only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import zipfile, json, hashlib, os, binascii
+          from collections import Counter
+
+          archive='zennifa_archive.zip'
+          out='ZENNIFA_RACE_RESULT_FORMAT_DIAGNOSTIC_v0_1.json'
+          encodings=['utf-8-sig','utf-8','cp932','shift_jis','euc_jp','utf-16','utf-16le','utf-16be','latin1']
+
+          with zipfile.ZipFile(archive) as z:
+              names=z.namelist()
+              rr=[n for n in names if 'race_result' in n.lower() or 'raceresult' in n.lower()]
+              ext=Counter(os.path.splitext(n)[1].lower() for n in names)
+              rr_ext=Counter(os.path.splitext(n)[1].lower() for n in rr)
+
+              samples=[]
+              for n in rr[:40]:
+                  info=z.getinfo(n)
+                  with z.open(n) as f:
+                      head=f.read(512)
+                  dec={}
+                  for enc in encodings:
+                      try:
+                          s=head.decode(enc)
+                          dec[enc]={
+                              'ok': True,
+                              'preview_repr': repr(s[:180]),
+                              'contains_comma': ',' in s,
+                              'contains_tab': '\t' in s,
+                              'contains_newline': ('\n' in s or '\r' in s),
+                          }
+                      except Exception as e:
+                          dec[enc]={'ok':False,'error':type(e).__name__+': '+str(e)}
+                  samples.append({
+                      'name':n,
+                      'file_size':info.file_size,
+                      'compress_size':info.compress_size,
+                      'first64_hex':binascii.hexlify(head[:64]).decode(),
+                      'sha256_head512':hashlib.sha256(head).hexdigest(),
+                      'decoding':dec,
+                  })
+
+          report={
+              'status':'SOURCE_ONLY_FORMAT_DIAGNOSTIC',
+              'archive_size':os.path.getsize(archive),
+              'archive_git_blob_sha':'0548946181816990eb8b182b99f3fd48d4c2c8e9',
+              'n_members':len(names),
+              'n_race_result_like_members':len(rr),
+              'all_extensions':dict(sorted(ext.items())),
+              'race_result_extensions':dict(sorted(rr_ext.items())),
+              'first_100_race_result_names':rr[:100],
+              'samples':samples,
+              'governance':{
+                  'target_labels_read':False,
+                  'tail293_read':False,
+                  'winner_labels_read':False,
+                  'predictive_metrics_read':False,
+                  'model_fit_performed':False,
+                  'production_influence':0,
+                  'ticket_influence':0,
+              },
+          }
+          with open(out,'w',encoding='utf-8') as f:
+              json.dump(report,f,ensure_ascii=False,indent=2)
+          print(json.dumps({k:report[k] for k in ['status','n_members','n_race_result_like_members','race_result_extensions']},ensure_ascii=False))
+          PY
+
+      - name: Seal diagnostic hash
+        shell: bash
+        run: sha256sum ZENNIFA_RACE_RESULT_FORMAT_DIAGNOSTIC_v0_1.json | tee ZENNIFA_RACE_RESULT_FORMAT_DIAGNOSTIC_v0_1.sha256
+
+      - name: Upload source-only diagnostic
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-pl-zennifa-race-result-format-diagnostic-v0-1
+          path: |
+            ZENNIFA_RACE_RESULT_FORMAT_DIAGNOSTIC_v0_1.json
+            ZENNIFA_RACE_RESULT_FORMAT_DIAGNOSTIC_v0_1.sha256
+          if-no-files-found: error
+
+      - name: Remove raw archive
+        if: always()
+        shell: bash
+        run: rm -f zennifa_archive.zip
