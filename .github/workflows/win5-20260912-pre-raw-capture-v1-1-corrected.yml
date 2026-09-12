@@ -1,0 +1,211 @@
+name: WIN5 2026-09-12 PRE Raw Capture v1.1 Corrected
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pre-raw-capture-v11:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Enforce genuine PRE cutoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          NOW_JST="$(TZ=Asia/Tokyo date '+%Y-%m-%dT%H:%M:%S%z')"
+          DATE_JST="$(TZ=Asia/Tokyo date '+%Y-%m-%d')"
+          HM_JST="$(TZ=Asia/Tokyo date '+%H%M')"
+          echo "capture_started_jst=${NOW_JST}"
+          if [ "$DATE_JST" != "2026-09-12" ]; then
+            echo "::error::Locked to 2026-09-12 JST."
+            exit 40
+          fi
+          if [ "$HM_JST" -ge 1420 ]; then
+            echo "::error::PRE cutoff closed: ${NOW_JST}"
+            exit 41
+          fi
+          mkdir -p pre_capture_v11
+          printf '%s\n' "$NOW_JST" > pre_capture_v11/workflow_start_jst.txt
+          printf '%s\n' "2026-09-12T14:20:00+09:00" > pre_capture_v11/declared_common_cutoff_jst.txt
+
+      - name: Install Playwright
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --quiet playwright==1.55.0
+          python -m playwright install --with-deps chromium
+
+      - name: Corrected exact-target PRE capture
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > capture_v11.py <<'PY'
+          import asyncio, hashlib, json, re
+          from datetime import datetime, timezone, timedelta
+          from pathlib import Path
+          from playwright.async_api import async_playwright
+
+          JST=timezone(timedelta(hours=9))
+          OUT=Path("pre_capture_v11"); OUT.mkdir(exist_ok=True)
+
+          T=[
+            dict(leg=1, venue="阪神", race_no=9,  race_name="瀬戸内海特別", mar_name="瀬戸内海特別",
+                 jra="https://www.jra.go.jp/JRADB/accessD.html?CNAME=pw01dde0109202604030920260912%2FD1",
+                 prod="https://horse-racing-ai-navi.com/jra/20260912/09/#r9",
+                 mar="https://mar-keiba.com/races/20260912/09_hanshinR9.html",
+                 aiu="https://ai-uma.com/keiba/20260912-hanshin-9r/",
+                 umz="https://umamentz.com/racecard/20260912/09/09/"),
+            dict(leg=2, venue="中山", race_no=10, race_name="レインボーステークス", mar_name="レインボーS",
+                 jra="https://www.jra.go.jp/JRADB/accessD.html?CNAME=pw01dde0106202604031020260912%2FE8",
+                 prod="https://horse-racing-ai-navi.com/jra/20260912/06/#r10",
+                 mar="https://mar-keiba.com/races/20260912/06_nakayamaR10.html",
+                 aiu="https://ai-uma.com/keiba/20260912-nakayama-10r/",
+                 umz="https://umamentz.com/racecard/20260912/06/10/"),
+            dict(leg=3, venue="阪神", race_no=10, race_name="竹田城ステークス", mar_name="竹田城S",
+                 jra="https://www.jra.go.jp/JRADB/accessD.html?CNAME=pw01dde0109202604031020260912%2FC6",
+                 prod="https://horse-racing-ai-navi.com/jra/20260912/09/#r10",
+                 mar="https://mar-keiba.com/races/20260912/09_hanshinR10.html",
+                 aiu="https://ai-uma.com/keiba/20260912-hanshin-10r/",
+                 umz="https://umamentz.com/racecard/20260912/09/10/"),
+            dict(leg=4, venue="中山", race_no=11, race_name="ラジオ日本賞", mar_name="ラジオ日本賞",
+                 jra="https://www.jra.go.jp/JRADB/accessD.html?CNAME=pw01dde0106202604031120260912%2F9D",
+                 prod="https://horse-racing-ai-navi.com/jra/20260912/06/#r11",
+                 mar="https://mar-keiba.com/races/20260912/06_nakayamaR11.html",
+                 aiu="https://ai-uma.com/keiba/20260912-nakayama-11r/",
+                 umz="https://umamentz.com/racecard/20260912/06/11/"),
+            dict(leg=5, venue="阪神", race_no=11, race_name="チャレンジカップ", mar_name="チャレンジC",
+                 jra="https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0109202604031120260912%2F7B",
+                 prod="https://horse-racing-ai-navi.com/jra/20260912/09/#r11",
+                 mar="https://mar-keiba.com/races/20260912/09_hanshinR11.html",
+                 aiu="https://ai-uma.com/keiba/20260912-hanshin-11r/",
+                 umz="https://umamentz.com/racecard/20260912/09/11/"),
+          ]
+
+          def now(): return datetime.now(JST)
+          def shab(b): return hashlib.sha256(b).hexdigest()
+          def slug(s): return re.sub(r"[^0-9A-Za-z_-]+","_",s).strip("_") or "x"
+
+          async def cap(page, sid, key, url, expected=None):
+              expected=expected or []
+              r={"source_id":sid,"key":key,"url":url,"capture_started_jst":now().isoformat(),
+                 "expected_terms":expected,"status":"HOLD_CAPTURE_FAIL","files":{}}
+              d=OUT/sid; d.mkdir(exist_ok=True)
+              try:
+                  resp=await page.goto(url, wait_until="domcontentloaded", timeout=45000)
+                  try: await page.wait_for_load_state("networkidle", timeout=10000)
+                  except Exception: pass
+                  await page.wait_for_timeout(1500)
+                  txt=await page.locator("body").inner_text(timeout=10000)
+                  html=await page.content()
+                  r["http_status"]=resp.status if resp else None
+                  r["final_url"]=page.url
+                  r["title"]=await page.title()
+                  r["term_presence"]={x:(x in txt) for x in expected}
+                  hp=d/(slug(key)+".html"); tp=d/(slug(key)+".txt"); pp=d/(slug(key)+".png")
+                  hp.write_text(html,encoding="utf-8"); tp.write_text(txt,encoding="utf-8")
+                  try: await page.screenshot(path=str(pp), full_page=True, timeout=15000)
+                  except Exception as e: r["screenshot_error"]=repr(e)
+                  for nm,p in [("html",hp),("text",tp),("screenshot",pp)]:
+                      if p.exists():
+                          b=p.read_bytes(); r["files"][nm]={"path":str(p),"bytes":len(b),"sha256":shab(b)}
+                  ok_http=(r["http_status"] is None or 200 <= r["http_status"] < 400)
+                  ok_terms=all(r["term_presence"].values()) if expected else True
+                  r["status"]="CAPTURED_IDENTITY_PASS" if ok_http and ok_terms else "HOLD_IDENTITY_OR_HTTP"
+              except Exception as e:
+                  r["error"]=repr(e)
+              r["capture_finished_jst"]=now().isoformat()
+              return r
+
+          async def main():
+              if now() >= datetime(2026,9,12,14,20,tzinfo=JST):
+                  raise SystemExit("PRE cutoff closed")
+              rec=[]
+              async with async_playwright() as p:
+                  browser=await p.chromium.launch(headless=True)
+                  ctx=await browser.new_context(locale="ja-JP",timezone_id="Asia/Tokyo",
+                    viewport={"width":1440,"height":1000},
+                    user_agent="Mozilla/5.0 AppleWebKit/537.36 Chrome/140 Safari/537.36")
+                  for t in T:
+                      # JRA: exact date/race-name is enough for raw identity.
+                      page=await ctx.new_page()
+                      rec.append(await cap(page,"JRA_COMMON",f"WIN{t['leg']}_{t['venue']}{t['race_no']}R",
+                                           t["jra"],["2026年9月12日",t["race_name"]]))
+                      await page.close()
+
+                      # Production: exact target URL; deep roster/index parser remains separate authority.
+                      page=await ctx.new_page()
+                      rec.append(await cap(page,"PRODUCTION",f"WIN{t['leg']}_{t['venue']}{t['race_no']}R",
+                                           t["prod"],[]))
+                      await page.close()
+
+                      # MAR: provider uses abbreviated special-race names.
+                      page=await ctx.new_page()
+                      rec.append(await cap(page,"MAR",f"WIN{t['leg']}_{t['venue']}{t['race_no']}R",
+                                           t["mar"],["2026/09/12",t["mar_name"]]))
+                      await page.close()
+
+                      # AIU: exact date/venue/race URL, no display-name alias discovery.
+                      page=await ctx.new_page()
+                      rec.append(await cap(page,"AIU",f"WIN{t['leg']}_{t['venue']}{t['race_no']}R",
+                                           t["aiu"],["2026年9月12日",t["mar_name"]]))
+                      await page.close()
+
+                      # UMZ: exact /racecard/ path, never article link.
+                      page=await ctx.new_page()
+                      rec.append(await cap(page,"UMZ",f"WIN{t['leg']}_{t['venue']}{t['race_no']}R",
+                                           t["umz"],["2026年9月12日",t["race_name"]]))
+                      await page.close()
+                  await browser.close()
+
+              by={}
+              for sid in ["JRA_COMMON","PRODUCTION","MAR","AIU","UMZ"]:
+                  rs=[x for x in rec if x["source_id"]==sid]
+                  by[sid]={"records":len(rs),
+                           "identity_pass":sum(x["status"]=="CAPTURED_IDENTITY_PASS" for x in rs),
+                           "statuses":[x["status"] for x in rs]}
+              summary={
+                "schema":"win5-20260912-pre-raw-capture-v1.1",
+                "capture_runtime_jst":now().isoformat(),
+                "common_cutoff_jst":"2026-09-12T14:20:00+09:00",
+                "production":"S72_FUKUSHO_FREE v0.1",
+                "ticket_influence":0,
+                "result_fields_read":False,
+                "classification":"RAW_CAPTURE_ONLY_NOT_DEEP_VALIDATOR_PASS",
+                "source_summary":by,
+                "records":rec,
+              }
+              (OUT/"capture_summary.json").write_text(json.dumps(summary,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+              md=["# WIN5 2026-09-12 PRE Raw Capture v1.1","",
+                  f"- runtime JST: `{summary['capture_runtime_jst']}`",
+                  "- classification: `RAW_CAPTURE_ONLY / NO PREDICTIVE CREDIT BY ITSELF`","",
+                  "|Source|Pass/5|","|---|---:|"]
+              for sid,v in by.items(): md.append(f"|{sid}|{v['identity_pass']}/5|")
+              md += ["","Deep source-native validators + COMMON v0.5 remain authoritative."]
+              (OUT/"CAPTURE_REPORT.md").write_text("\n".join(md)+"\n",encoding="utf-8")
+              print(json.dumps(by,ensure_ascii=False,indent=2))
+
+          asyncio.run(main())
+          PY
+          python capture_v11.py
+          (cd pre_capture_v11 && find . -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+
+      - name: Show report
+        if: always()
+        shell: bash
+        run: |
+          cat pre_capture_v11/CAPTURE_REPORT.md || true
+          echo "=== SHA256SUMS ==="
+          cat pre_capture_v11/SHA256SUMS.txt || true
+
+      - name: Upload corrected PRE evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: win5-20260912-pre-raw-capture-v11-${{ github.run_id }}-${{ github.run_attempt }}
+          path: pre_capture_v11/
+          if-no-files-found: error
+          retention-days: 90
