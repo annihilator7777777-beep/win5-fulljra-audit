@@ -1,0 +1,410 @@
+name: WIN5 2026-09-12 PRE Raw Capture v1.0
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pre-raw-capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Enforce genuine PRE cutoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          NOW_JST="$(TZ=Asia/Tokyo date '+%Y-%m-%dT%H:%M:%S%z')"
+          DATE_JST="$(TZ=Asia/Tokyo date '+%Y-%m-%d')"
+          HM_JST="$(TZ=Asia/Tokyo date '+%H%M')"
+          echo "capture_started_jst=${NOW_JST}"
+          if [ "$DATE_JST" != "2026-09-12" ]; then
+            echo "::error::PRE capture is locked to 2026-09-12 JST."
+            exit 40
+          fi
+          if [ "$HM_JST" -ge 1420 ]; then
+            echo "::error::PRE cutoff closed. Current JST=${NOW_JST}; cutoff=2026-09-12T14:20:00+0900"
+            exit 41
+          fi
+          mkdir -p pre_capture
+          printf '%s\n' "$NOW_JST" > pre_capture/workflow_start_jst.txt
+          printf '%s\n' "2026-09-12T14:20:00+09:00" > pre_capture/declared_common_cutoff_jst.txt
+
+      - name: Install browser capture runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --quiet playwright==1.55.0
+          python -m playwright install --with-deps chromium
+
+      - name: Capture PRE evidence fail-closed
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > capture_win5_pre_20260912.py <<'PY'
+          import asyncio
+          import hashlib
+          import json
+          import re
+          import sys
+          from datetime import datetime, timezone, timedelta
+          from pathlib import Path
+          from urllib.parse import urljoin
+          from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
+
+          JST = timezone(timedelta(hours=9))
+          OUT = Path("pre_capture")
+          OUT.mkdir(exist_ok=True)
+
+          TARGETS = [
+              {
+                  "leg": 1, "venue": "阪神", "race_no": 9, "race_name": "瀬戸内海特別",
+                  "post": "14:25",
+                  "jra": "https://www.jra.go.jp/JRADB/accessD.html?CNAME=pw01dde0109202604030920260912%2FD1",
+                  "mar": "https://mar-keiba.com/races/20260912/09_hanshinR09.html",
+              },
+              {
+                  "leg": 2, "venue": "中山", "race_no": 10, "race_name": "レインボーステークス",
+                  "post": "14:50",
+                  "jra": "https://www.jra.go.jp/JRADB/accessD.html?CNAME=pw01dde0106202604031020260912%2FE8",
+                  "mar": "https://mar-keiba.com/races/20260912/06_nakayamaR10.html",
+              },
+              {
+                  "leg": 3, "venue": "阪神", "race_no": 10, "race_name": "竹田城ステークス",
+                  "post": "15:05",
+                  "jra": "https://www.jra.go.jp/JRADB/accessD.html?CNAME=pw01dde0109202604031020260912%2FC6",
+                  "mar": "https://mar-keiba.com/races/20260912/09_hanshinR10.html",
+              },
+              {
+                  "leg": 4, "venue": "中山", "race_no": 11, "race_name": "ラジオ日本賞",
+                  "post": "15:30",
+                  "jra": "https://www.jra.go.jp/JRADB/accessD.html?CNAME=pw01dde0106202604031120260912%2F9D",
+                  "mar": "https://mar-keiba.com/races/20260912/06_nakayamaR11.html",
+              },
+              {
+                  "leg": 5, "venue": "阪神", "race_no": 11, "race_name": "チャレンジカップ",
+                  "post": "15:45",
+                  "jra": "https://jra.jp/JRADB/accessD.html?CNAME=pw01dde0109202604031120260912%2F7B",
+                  "mar": "https://mar-keiba.com/races/20260912/09_hanshinR11.html",
+              },
+          ]
+
+          SOURCE_HOME = {
+              "PRODUCTION": "https://horse-racing-ai-navi.com/ai-keiba-yosou",
+              "AIU_DAY": "https://ai-uma.com/day/20260912/",
+              "UMZ_HOME": "https://umamentz.com/",
+          }
+
+          def now_jst():
+              return datetime.now(JST)
+
+          def sha256_bytes(b: bytes) -> str:
+              return hashlib.sha256(b).hexdigest()
+
+          def safe_slug(s: str) -> str:
+              s = re.sub(r"[^0-9A-Za-z_-]+", "_", s)
+              return s.strip("_") or "capture"
+
+          async def capture_page(page, source_id, key, url, expected_terms=(), timeout_ms=45000):
+              started = now_jst()
+              rec = {
+                  "source_id": source_id,
+                  "key": key,
+                  "url": url,
+                  "capture_started_jst": started.isoformat(),
+                  "expected_terms": list(expected_terms),
+                  "status": "HOLD_CAPTURE_FAIL",
+                  "http_status": None,
+                  "final_url": None,
+                  "title": None,
+                  "content_terms_present": {},
+                  "files": {},
+                  "error": None,
+              }
+              base = OUT / safe_slug(source_id)
+              base.mkdir(parents=True, exist_ok=True)
+              stem = safe_slug(key)
+
+              try:
+                  resp = await page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+                  rec["http_status"] = resp.status if resp else None
+                  try:
+                      await page.wait_for_load_state("networkidle", timeout=12000)
+                  except Exception:
+                      pass
+                  await page.wait_for_timeout(2000)
+
+                  rec["final_url"] = page.url
+                  rec["title"] = await page.title()
+                  html = await page.content()
+                  try:
+                      txt = await page.locator("body").inner_text(timeout=10000)
+                  except Exception:
+                      txt = ""
+
+                  rec["content_terms_present"] = {term: (term in txt) for term in expected_terms}
+
+                  html_path = base / f"{stem}.html"
+                  txt_path = base / f"{stem}.txt"
+                  html_path.write_text(html, encoding="utf-8")
+                  txt_path.write_text(txt, encoding="utf-8")
+
+                  hb = html_path.read_bytes()
+                  tb = txt_path.read_bytes()
+                  rec["files"]["html"] = {
+                      "path": str(html_path), "bytes": len(hb), "sha256": sha256_bytes(hb)
+                  }
+                  rec["files"]["text"] = {
+                      "path": str(txt_path), "bytes": len(tb), "sha256": sha256_bytes(tb)
+                  }
+
+                  try:
+                      png_path = base / f"{stem}.png"
+                      await page.screenshot(path=str(png_path), full_page=True, timeout=15000)
+                      pb = png_path.read_bytes()
+                      rec["files"]["screenshot"] = {
+                          "path": str(png_path), "bytes": len(pb), "sha256": sha256_bytes(pb)
+                      }
+                  except Exception as e:
+                      rec["files"]["screenshot_error"] = repr(e)
+
+                  http_ok = rec["http_status"] is None or 200 <= rec["http_status"] < 400
+                  identity_ok = all(rec["content_terms_present"].values()) if expected_terms else True
+                  rec["status"] = "CAPTURED_IDENTITY_PASS" if (http_ok and identity_ok) else "HOLD_IDENTITY_OR_HTTP"
+              except Exception as e:
+                  rec["error"] = repr(e)
+
+              rec["capture_finished_jst"] = now_jst().isoformat()
+              return rec
+
+          async def extract_links_for_targets(page, base_url, targets):
+              links = {}
+              try:
+                  anchors = await page.locator("a").all()
+                  for a in anchors:
+                      try:
+                          text = (await a.inner_text()).strip()
+                          href = await a.get_attribute("href")
+                      except Exception:
+                          continue
+                      if not href:
+                          continue
+                      full = urljoin(base_url, href)
+                      for t in targets:
+                          if t["race_name"] in text and t["race_name"] not in links:
+                              links[t["race_name"]] = full
+              except Exception:
+                  pass
+              return links
+
+          async def main():
+              if now_jst() >= datetime(2026, 9, 12, 14, 20, tzinfo=JST):
+                  raise SystemExit("PRE cutoff already closed")
+
+              records = []
+              summary = {
+                  "schema": "win5-20260912-pre-raw-capture-v1.0",
+                  "target_date": "2026-09-12",
+                  "common_cutoff_jst": "2026-09-12T14:20:00+09:00",
+                  "capture_runtime_jst": now_jst().isoformat(),
+                  "production": "S72_FUKUSHO_FREE v0.1",
+                  "ticket_influence": 0,
+                  "result_fields_read": False,
+                  "targets": TARGETS,
+              }
+
+              async with async_playwright() as p:
+                  browser = await p.chromium.launch(headless=True)
+                  context = await browser.new_context(
+                      locale="ja-JP",
+                      timezone_id="Asia/Tokyo",
+                      viewport={"width": 1440, "height": 1000},
+                      user_agent=(
+                          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                          "AppleWebKit/537.36 (KHTML, like Gecko) "
+                          "Chrome/140.0.0.0 Safari/537.36"
+                      ),
+                  )
+
+                  # 1) JRA is the only COMMON race/roster/cutoff authority.
+                  jra_ok = True
+                  for t in TARGETS:
+                      page = await context.new_page()
+                      terms = [t["race_name"], f"{t['race_no']}R"]
+                      if t["leg"] == 1:
+                          terms.append(t["post"])
+                      rec = await capture_page(
+                          page, "JRA_COMMON", f"WIN{t['leg']}_{t['venue']}{t['race_no']}R",
+                          t["jra"], terms
+                      )
+                      records.append(rec)
+                      if rec["status"] != "CAPTURED_IDENTITY_PASS":
+                          jra_ok = False
+                      await page.close()
+
+                  # 2) Production page. Exact target-value parsing is intentionally not invented here.
+                  page = await context.new_page()
+                  prod = await capture_page(
+                      page, "PRODUCTION",
+                      "keiba_ai_navi_all_races",
+                      SOURCE_HOME["PRODUCTION"],
+                      [t["race_name"] for t in TARGETS],
+                  )
+                  records.append(prod)
+                  await page.close()
+
+                  # 3) MAR exact date/race candidate URLs. Each identity must prove itself.
+                  for t in TARGETS:
+                      page = await context.new_page()
+                      rec = await capture_page(
+                          page, "MAR", f"WIN{t['leg']}_{t['venue']}{t['race_no']}R",
+                          t["mar"], [t["race_name"]]
+                      )
+                      # Placeholder diagnostic only; this never promotes a source.
+                      text_path = rec.get("files", {}).get("text", {}).get("path")
+                      if text_path and Path(text_path).exists():
+                          txt = Path(text_path).read_text(encoding="utf-8", errors="replace")
+                          rec["placeholder_diagnostics"] = {
+                              "contains_50_0": "50.0" in txt,
+                              "contains_missing_odds_marker": "---.-" in txt,
+                          }
+                      records.append(rec)
+                      await page.close()
+
+                  # 4) AIU date page + target links discovered from that date page.
+                  page = await context.new_page()
+                  aiu_day = await capture_page(
+                      page, "AIU", "day_20260912",
+                      SOURCE_HOME["AIU_DAY"],
+                      ["2026", "9", "12"]
+                  )
+                  records.append(aiu_day)
+                  aiu_links = await extract_links_for_targets(page, page.url, TARGETS)
+                  await page.close()
+                  for t in TARGETS:
+                      url = aiu_links.get(t["race_name"])
+                      if not url:
+                          records.append({
+                              "source_id": "AIU",
+                              "key": f"WIN{t['leg']}_{t['venue']}{t['race_no']}R",
+                              "url": None,
+                              "status": "SOURCE_UNAVAILABLE_TARGET_LINK_NOT_DISCOVERED",
+                              "expected_terms": [t["race_name"]],
+                              "capture_finished_jst": now_jst().isoformat(),
+                          })
+                          continue
+                      page = await context.new_page()
+                      rec = await capture_page(
+                          page, "AIU", f"WIN{t['leg']}_{t['venue']}{t['race_no']}R",
+                          url, [t["race_name"]]
+                      )
+                      records.append(rec)
+                      await page.close()
+
+                  # 5) UMZ homepage + exact target links discovered from the current page.
+                  page = await context.new_page()
+                  umz_home = await capture_page(
+                      page, "UMZ", "home",
+                      SOURCE_HOME["UMZ_HOME"],
+                      [t["race_name"] for t in TARGETS],
+                  )
+                  records.append(umz_home)
+                  umz_links = await extract_links_for_targets(page, page.url, TARGETS)
+                  await page.close()
+                  for t in TARGETS:
+                      url = umz_links.get(t["race_name"])
+                      if not url:
+                          records.append({
+                              "source_id": "UMZ",
+                              "key": f"WIN{t['leg']}_{t['venue']}{t['race_no']}R",
+                              "url": None,
+                              "status": "SOURCE_UNAVAILABLE_TARGET_LINK_NOT_DISCOVERED",
+                              "expected_terms": [t["race_name"]],
+                              "capture_finished_jst": now_jst().isoformat(),
+                          })
+                          continue
+                      page = await context.new_page()
+                      rec = await capture_page(
+                          page, "UMZ", f"WIN{t['leg']}_{t['venue']}{t['race_no']}R",
+                          url, [t["race_name"]]
+                      )
+                      records.append(rec)
+                      await page.close()
+
+                  await browser.close()
+
+              summary["jra_common_all5_identity_pass"] = jra_ok
+              summary["records"] = records
+
+              # Source state is conservative: CAPTURED here only means raw identity capture,
+              # not semantic/probability validator PASS.
+              source_states = {}
+              for sid in ["PRODUCTION", "MAR", "AIU", "UMZ"]:
+                  rs = [r for r in records if r.get("source_id") == sid]
+                  source_states[sid] = {
+                      "raw_records": len(rs),
+                      "identity_pass_records": sum(r.get("status") == "CAPTURED_IDENTITY_PASS" for r in rs),
+                      "note": "RAW_CAPTURE_ONLY_NOT_DEEP_VALIDATOR_PASS",
+                  }
+              summary["source_states"] = source_states
+
+              out_json = OUT / "capture_summary.json"
+              out_json.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+              md = []
+              md.append("# WIN5 2026-09-12 PRE Raw Capture")
+              md.append("")
+              md.append(f"- runtime JST: `{summary['capture_runtime_jst']}`")
+              md.append(f"- common cutoff: `{summary['common_cutoff_jst']}`")
+              md.append(f"- JRA COMMON all5 identity: `{'PASS' if jra_ok else 'HOLD'}`")
+              md.append("- classification: `RAW_CAPTURE_ONLY / NO PREDICTIVE CREDIT BY ITSELF`")
+              md.append("")
+              md.append("| Source | Key | Status | URL |")
+              md.append("|---|---|---|---|")
+              for r in records:
+                  u = r.get("url") or ""
+                  md.append(f"| {r.get('source_id','')} | {r.get('key','')} | {r.get('status','')} | {u} |")
+              md.append("")
+              md.append("Deep source-native validators and COMMON v0.5 remain authoritative. Raw capture does not authorize selection or ticket changes.")
+              (OUT / "CAPTURE_REPORT.md").write_text("\n".join(md) + "\n", encoding="utf-8")
+
+              if not jra_ok:
+                  print("HOLD_JRA_COMMON_IDENTITY")
+                  # Preserve evidence through artifact upload; step itself remains success.
+              else:
+                  print("PASS_RAW_JRA_COMMON_CAPTURE")
+              print(json.dumps(source_states, ensure_ascii=False, indent=2))
+
+          if __name__ == "__main__":
+              asyncio.run(main())
+          PY
+
+          python capture_win5_pre_20260912.py
+          (
+            cd pre_capture
+            find . -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt
+          )
+
+      - name: Show compact capture report
+        if: always()
+        shell: bash
+        run: |
+          if [ -f pre_capture/CAPTURE_REPORT.md ]; then
+            cat pre_capture/CAPTURE_REPORT.md
+          fi
+          if [ -f pre_capture/SHA256SUMS.txt ]; then
+            echo
+            echo "=== SHA256SUMS ==="
+            cat pre_capture/SHA256SUMS.txt
+          fi
+
+      - name: Upload immutable PRE raw evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: win5-20260912-pre-raw-capture-${{ github.run_id }}-${{ github.run_attempt }}
+          path: pre_capture/
+          if-no-files-found: error
+          retention-days: 90
