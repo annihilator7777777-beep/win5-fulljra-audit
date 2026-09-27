@@ -1,0 +1,92 @@
+name: MultiBet FullJRA StageA v0.4 Source Only
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stagea:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Reconstruct frozen source-only programs
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > extractor.py.gz.b64 <<'EOF_EXTRACT'
+          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
+          EOF_EXTRACT
+          base64 -d extractor.py.gz.b64 | gzip -d > extract_fulljra_speed_stagea_dbset_v0_4.py
+          cat > completeness.py.gz.b64 <<'EOF_COMP'
+          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
+          EOF_COMP
+          base64 -d completeness.py.gz.b64 | gzip -d > audit_fulljra_speed_numeric_completeness_v0_1.py
+          cat > median.py.gz.b64 <<'EOF_MED'
+          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
+          EOF_MED
+          base64 -d median.py.gz.b64 | gzip -d > audit_fulljra_par_median_robustness_v0_1.py
+          echo '654a8c9aec768cda5a7c87f92054263466407ad8a43fcb9c62162577417315e9  extract_fulljra_speed_stagea_dbset_v0_4.py' | sha256sum -c -
+          echo '696ba6274bc0ee1823851d4fa878c9da819ae49bee13e68bcce90225f6f4b401  audit_fulljra_speed_numeric_completeness_v0_1.py' | sha256sum -c -
+          echo '3a0651c6609768b580b8fdd985218cb6fb55aef67c77b60ae4fa2ed9fdad97a9  audit_fulljra_par_median_robustness_v0_1.py' | sha256sum -c -
+
+      - name: Download exact frozen KBlueLeaf DB
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --connect-timeout 30 \
+            -o all_races_2005-2024.db \
+            'https://huggingface.co/datasets/KBlueLeaf/jp-racing-horse/resolve/main/all_races_2005-2024.db?download=true'
+          test "$(stat -c%s all_races_2005-2024.db)" = '717680640'
+          echo '7828af205838d148f6bca70870d4ab152ea6b54430093dcf3159d23583252eab  all_races_2005-2024.db' | sha256sum -c -
+
+      - name: Run dual-table Stage A outcome-closed
+        shell: bash
+        run: |
+          set -euo pipefail
+          python extract_fulljra_speed_stagea_dbset_v0_4.py --db all_races_2005-2024.db --outdir stagea
+          python audit_fulljra_speed_numeric_completeness_v0_1.py \
+            --normalized stagea/FULLJRA_FLAT_SPEED_REFERENCE_ROWS_2016_2020_v0.4.csv.gz \
+            --support stagea/FULLJRA_FLAT_CONTEXT_SUPPORT_2016_2020_v0.4.csv \
+            --out stagea/FULLJRA_SPEED_NUMERIC_COMPLETENESS_AUDIT_v0.1.json
+          python audit_fulljra_par_median_robustness_v0_1.py \
+            --normalized stagea/FULLJRA_FLAT_SPEED_REFERENCE_ROWS_2016_2020_v0.4.csv.gz \
+            --support stagea/FULLJRA_FLAT_CONTEXT_SUPPORT_2016_2020_v0.4.csv \
+            --outdir stagea/par_median
+
+      - name: Assert predictive firewall
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY_GATE'
+          import json, pathlib
+          x=json.loads(pathlib.Path('stagea/FULLJRA_SPEED_STAGEA_GATE_REPORT_v0.4.json').read_text())
+          assert x['status']=='PASS_STAGEA_SOURCE_COVERAGE'
+          assert x['flat_race_count']==16639
+          assert x['official_flat_set_authority_sha256']=='0040468145d620c6ffa06027fb9ec9926495b0817eb6d7ad22e9a9e9e10eaf02'
+          assert x['source_flat_set_sha256']==x['official_flat_set_authority_sha256']
+          assert x['ranking_used_for_feature'] is False
+          assert x['odds_popularity_payout_exported'] is False
+          assert x['target_winner_feature_use'] is False
+          print('SOURCE_ONLY_STAGEA_PASS')
+          PY_GATE
+
+      - name: Seal output hashes
+        shell: bash
+        run: |
+          set -euo pipefail
+          find stagea -type f ! -name SHA256SUMS_STAGEA_PACKET.txt -print0 | sort -z | xargs -0 sha256sum > stagea/SHA256SUMS_STAGEA_PACKET.txt
+
+      - name: Upload source-only evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: multibet-fulljra-stagea-v0-4-source-only
+          path: stagea/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Cleanup raw DB
+        if: always()
+        shell: bash
+        run: rm -f all_races_2005-2024.db
