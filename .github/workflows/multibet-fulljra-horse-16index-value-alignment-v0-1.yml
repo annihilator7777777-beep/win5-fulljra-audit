@@ -1,0 +1,160 @@
+name: MultiBet FullJRA Horse 16-Index Value Alignment v0.1
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  align:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Download exact frozen KBlueLeaf DB
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --connect-timeout 30 \
+            -o all_races_2005-2024.db \
+            'https://huggingface.co/datasets/KBlueLeaf/jp-racing-horse/resolve/main/all_races_2005-2024.db?download=true'
+          test "$(stat -c%s all_races_2005-2024.db)" = '717680640'
+          echo '7828af205838d148f6bca70870d4ab152ea6b54430093dcf3159d23583252eab  all_races_2005-2024.db' | sha256sum -c -
+
+      - name: Align Horse 16-index rows against Race source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > align.py <<'PY'
+          import sqlite3,json,re,math,hashlib,pathlib,collections
+
+          DB="all_races_2005-2024.db"
+          OUT=pathlib.Path("horse_16index_alignment")
+          OUT.mkdir(exist_ok=True)
+          RID=re.compile(r'^20(?:16|17|18|19|20)(?:0[1-9]|10)\d{6}$')
+
+          def num(v):
+              try:
+                  if v is None or v=="": return None
+                  x=float(v)
+                  return x if math.isfinite(x) else None
+              except Exception:
+                  return None
+
+          con=sqlite3.connect(DB)
+          con.row_factory=sqlite3.Row
+          c=con.cursor()
+
+          # Race-side source map only. Do not read odds/popularity/payout.
+          race={}
+          for r in c.execute("select rid,horses from race"):
+              rid=str(r["rid"]).strip()
+              if not RID.fullmatch(rid): continue
+              try: rows=json.loads(r["horses"])
+              except Exception: continue
+              if not isinstance(rows,list): continue
+              for x in rows:
+                  if not isinstance(x,list) or len(x)<9: continue
+                  hid=str(x[0]).strip()
+                  race[(rid,hid)]=(num(x[7]),num(x[8]))
+
+          # For each Horse index, compare numeric values with Race elapsed/final600.
+          stats={
+              target:[{"comparable":0,"exact":0,"absdiff_sum":0.0,"within_1e9":0} for _ in range(16)]
+              for target in ("elapsed","final600")
+          }
+          inner_len=collections.Counter()
+          matched_pairs=0
+          horse_target_rows=0
+
+          for hr in c.execute("select hid,races from horse"):
+              hid=str(hr["hid"]).strip()
+              raw=hr["races"]
+              try: rows=json.loads(raw)
+              except Exception: continue
+              if not isinstance(rows,list): continue
+              for x in rows:
+                  if not isinstance(x,list): continue
+                  inner_len[len(x)]+=1
+                  if len(x)!=16: continue
+                  rid=str(x[0]).strip()
+                  if not RID.fullmatch(rid): continue
+                  horse_target_rows+=1
+                  rv=race.get((rid,hid))
+                  if rv is None: continue
+                  matched_pairs+=1
+                  targets={"elapsed":rv[0],"final600":rv[1]}
+                  for t,y in targets.items():
+                      if y is None: continue
+                      for i,v in enumerate(x):
+                          z=num(v)
+                          if z is None: continue
+                          s=stats[t][i]
+                          s["comparable"]+=1
+                          d=abs(z-y)
+                          s["absdiff_sum"]+=d
+                          if d<=1e-9:
+                              s["exact"]+=1
+                              s["within_1e9"]+=1
+
+          for t in stats:
+              for i,s in enumerate(stats[t]):
+                  n=s["comparable"]
+                  s["index"]=i
+                  s["exact_rate"]=s["exact"]/n if n else None
+                  s["mean_absdiff"]=s["absdiff_sum"]/n if n else None
+                  del s["absdiff_sum"]
+
+          report={
+              "status":"PASS_HORSE_16INDEX_ALIGNMENT_COMPLETE",
+              "classification":"SOURCE_ONLY_SCHEMA_ALIGNMENT_NO_PREDICTIVE_SCORING",
+              "db_sha256_expected":"7828af205838d148f6bca70870d4ab152ea6b54430093dcf3159d23583252eab",
+              "inner_list_length_counts":dict(sorted(inner_len.items())),
+              "horse_target_rows":horse_target_rows,
+              "race_horse_pairs_matched":matched_pairs,
+              "alignment":stats,
+              "predictive_metrics_read":False,
+              "winner_labels_used":False,
+              "odds_popularity_payout_read":False,
+              "posthoc_threshold_selected":False
+          }
+          p=OUT/"HORSE_16INDEX_VALUE_ALIGNMENT_v0.1.json"
+          p.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
+          sha=hashlib.sha256(p.read_bytes()).hexdigest()
+          (OUT/"SHA256SUMS.txt").write_text(f"{sha}  {p.name}\n",encoding="utf-8")
+          print(json.dumps({
+              "status":report["status"],
+              "inner_list_length_counts":report["inner_list_length_counts"],
+              "horse_target_rows":horse_target_rows,
+              "race_horse_pairs_matched":matched_pairs,
+              "elapsed_best":max(stats["elapsed"],key=lambda s:(s["exact_rate"] or -1)),
+              "final600_best":max(stats["final600"],key=lambda s:(s["exact_rate"] or -1)),
+              "artifact_sha256":sha
+          },indent=2))
+          PY
+          python align.py | tee horse_16index_alignment_stdout.json
+
+      - name: Assert firewall
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          d=json.load(open("horse_16index_alignment/HORSE_16INDEX_VALUE_ALIGNMENT_v0.1.json"))
+          assert d["status"]=="PASS_HORSE_16INDEX_ALIGNMENT_COMPLETE"
+          assert d["predictive_metrics_read"] is False
+          assert d["winner_labels_used"] is False
+          assert d["odds_popularity_payout_read"] is False
+          assert d["posthoc_threshold_selected"] is False
+          print("PASS_SOURCE_ONLY_FIREWALL")
+          PY
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: multibet-fulljra-horse-16index-value-alignment-v0-1
+          path: |
+            horse_16index_alignment/
+            horse_16index_alignment_stdout.json
+          if-no-files-found: error
+          retention-days: 30
