@@ -1,0 +1,154 @@
+name: MultiBet FullJRA Horse Race-ID Position Diagnostic v0.1
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  horse-raceid-position:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Download exact frozen KBlueLeaf DB
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --connect-timeout 30 \
+            -o all_races_2005-2024.db \
+            'https://huggingface.co/datasets/KBlueLeaf/jp-racing-horse/resolve/main/all_races_2005-2024.db?download=true'
+          test "$(stat -c%s all_races_2005-2024.db)" = '717680640'
+          echo '7828af205838d148f6bca70870d4ab152ea6b54430093dcf3159d23583252eab  all_races_2005-2024.db' | sha256sum -c -
+
+      - name: Diagnose exact race-id representation and list position
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > diag.py <<'PY'
+          import sqlite3, json, re, hashlib, pathlib, collections
+
+          DB="all_races_2005-2024.db"
+          OUT=pathlib.Path("horse_raceid_position_diag")
+          OUT.mkdir(exist_ok=True)
+          RID=re.compile(r'20(?:16|17|18|19|20)(?:0[1-9]|10)\d{6}')
+
+          con=sqlite3.connect(DB)
+          cur=con.cursor()
+          cols=[r[1] for r in cur.execute('pragma table_info("horse")')]
+          assert "races" in cols
+
+          rows_scanned=0
+          relevant_rows=0
+          inner_lists=0
+          len_counts=collections.Counter()
+          position_hits=collections.Counter()
+          representation_hits=collections.Counter()
+          target_match_examples=[]
+          unresolved_rawtoken_rows=0
+
+          for (raw,) in cur.execute('select races from horse'):
+              rows_scanned += 1
+              if not isinstance(raw,str):
+                  continue
+              raw_ids=set(RID.findall(raw))
+              if not raw_ids:
+                  continue
+              relevant_rows += 1
+              obj=json.loads(raw)
+              found_this_row=set()
+
+              if not isinstance(obj,list):
+                  continue
+
+              for rec in obj:
+                  if not isinstance(rec,list):
+                      continue
+                  inner_lists += 1
+                  len_counts[len(rec)] += 1
+
+                  for i,v in enumerate(rec):
+                      candidates=[]
+                      if isinstance(v,str):
+                          candidates += RID.findall(v)
+                          if v.isdigit() and len(v)==12:
+                              candidates.append(v)
+                      elif isinstance(v,int):
+                          s=str(v)
+                          if len(s)==12:
+                              candidates.append(s)
+
+                      for rid in set(candidates):
+                          if rid in raw_ids:
+                              found_this_row.add(rid)
+                              position_hits[i] += 1
+                              representation_hits[f"{i}:{type(v).__name__}"] += 1
+                              if len(target_match_examples) < 50:
+                                  target_match_examples.append({
+                                      "race_id": rid,
+                                      "inner_len": len(rec),
+                                      "index": i,
+                                      "value_type": type(v).__name__,
+                                      "value_repr": str(v)
+                                  })
+
+              if not (found_this_row & raw_ids):
+                  unresolved_rawtoken_rows += 1
+
+          report={
+              "status":"PASS_HORSE_RACEID_POSITION_DIAGNOSTIC_COMPLETE",
+              "classification":"SOURCE_ONLY_SCHEMA_DIAGNOSTIC_NO_PREDICTIVE_SCORING",
+              "db_sha256_expected":"7828af205838d148f6bca70870d4ab152ea6b54430093dcf3159d23583252eab",
+              "horse_rows_scanned":rows_scanned,
+              "relevant_rawtoken_rows":relevant_rows,
+              "inner_lists_scanned":inner_lists,
+              "inner_list_length_counts":dict(sorted(len_counts.items())),
+              "race_id_position_hits":dict(sorted(position_hits.items())),
+              "race_id_representation_hits":dict(sorted(representation_hits.items())),
+              "unresolved_rawtoken_rows":unresolved_rawtoken_rows,
+              "examples":target_match_examples,
+              "predictive_metrics_read":False,
+              "winner_labels_used":False,
+              "odds_popularity_payout_read":False,
+              "posthoc_threshold_selected":False
+          }
+
+          p=OUT/"HORSE_RACEID_POSITION_DIAGNOSTIC_v0.1.json"
+          p.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
+          sha=hashlib.sha256(p.read_bytes()).hexdigest()
+          (OUT/"SHA256SUMS.txt").write_text(f"{sha}  {p.name}\n",encoding="utf-8")
+          print(json.dumps({
+              "status":report["status"],
+              "horse_rows_scanned":rows_scanned,
+              "relevant_rawtoken_rows":relevant_rows,
+              "race_id_position_hits":report["race_id_position_hits"],
+              "unresolved_rawtoken_rows":unresolved_rawtoken_rows,
+              "artifact_sha256":sha
+          },indent=2))
+          PY
+          python diag.py | tee horse_raceid_position_stdout.json
+
+      - name: Assert diagnostic firewall
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          d=json.load(open("horse_raceid_position_diag/HORSE_RACEID_POSITION_DIAGNOSTIC_v0.1.json"))
+          assert d["status"]=="PASS_HORSE_RACEID_POSITION_DIAGNOSTIC_COMPLETE"
+          assert d["predictive_metrics_read"] is False
+          assert d["winner_labels_used"] is False
+          assert d["odds_popularity_payout_read"] is False
+          assert d["posthoc_threshold_selected"] is False
+          print("PASS_DIAGNOSTIC_FIREWALL")
+          PY
+
+      - name: Upload diagnostic artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: multibet-fulljra-horse-raceid-position-diagnostic-v0-1
+          path: |
+            horse_raceid_position_diag/
+            horse_raceid_position_stdout.json
+          if-no-files-found: error
+          retention-days: 30
