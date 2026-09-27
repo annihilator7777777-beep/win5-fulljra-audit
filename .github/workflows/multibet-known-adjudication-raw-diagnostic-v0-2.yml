@@ -1,0 +1,84 @@
+name: MultiBet Known Adjudication Raw Diagnostic v0.2
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  known-case-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Reconstruct diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > diag.py.b64 <<'EOF'
+          IyEvdXNyL2Jpbi9lbnYgcHl0aG9uMwppbXBvcnQgc3FsaXRlMyxqc29uLHBhdGhsaWIsaGFzaGxpYixyZSxjb2xsZWN0aW9ucwoKREI9cGF0aGxpYi5QYXRo
+          KCJhbGxfcmFjZXNfMjAwNS0yMDI0LmRiIikKT1VUPXBhdGhsaWIuUGF0aCgia25vd25fYWRqdWRpY2F0aW9uX3Jhd19kaWFnIik7IE9VVC5ta2RpcihleGlz
+          dF9vaz1UcnVlKQpEQl9TSEE9Ijc4MjhhZjIwNTgzOGQxNDhmNmJjYTcwODcwZDRhYjE1MmVhNmI1NDQzMDA5M2RjZjMxNTlkMjM1ODMyNTJlYWIiClRBUkdF
+          VFM9WyIyMDE0MDYwNDAyMDYiLCIyMDIwMDUwNTAxMDQiXQoKZGVmIHNoYShwKToKICAgIGg9aGFzaGxpYi5zaGEyNTYoKQogICAgd2l0aCBwLm9wZW4oInJi
+          IikgYXMgZjoKICAgICAgICBmb3IgYiBpbiBpdGVyKGxhbWJkYTpmLnJlYWQoMTw8MjApLGIiIik6IGgudXBkYXRlKGIpCiAgICByZXR1cm4gaC5oZXhkaWdl
+          c3QoKQoKYXNzZXJ0IERCLnN0YXQoKS5zdF9zaXplPT03MTdfNjgwXzY0MCBhbmQgc2hhKERCKT09REJfU0hBCmNvbj1zcWxpdGUzLmNvbm5lY3QoREIpOyBj
+          b24ucm93X2ZhY3Rvcnk9c3FsaXRlMy5Sb3cKCnJlcG9ydD17InN0YXR1cyI6IlBBU1NfS05PV05fQURKVURJQ0FUSU9OX1JBV19ESUFHTk9TVElDX0NPTVBM
+          RVRFIiwKICAgICAgICAiY2xhc3NpZmljYXRpb24iOiJTT1VSQ0VfT05MWV9UQVJHRVRFRF9TRU1BTlRJQ1NfTk9fUFJFRElDVElWRV9TQ09SSU5HIiwKICAg
+          ICAgICAiZGJfc2hhMjU2IjpzaGEoREIpLCJ0YXJnZXRzIjp7fSwKICAgICAgICAicHJlZGljdGl2ZV9tZXRyaWNzX3JlYWQiOkZhbHNlLCJvZGRzX3BvcHVs
+          YXJpdHlfcGF5b3V0X3JlYWQiOkZhbHNlLAogICAgICAgICJhY3Rpb25faW5mbHVlbmNlIjowfQoKZm9yIHJpZCBpbiBUQVJHRVRTOgogICAgcm93cz1jb24u
+          ZXhlY3V0ZSgic2VsZWN0ICogZnJvbSByYWNlIHdoZXJlIGNhc3QocmlkIGFzIHRleHQpPT8iLChyaWQsKSkuZmV0Y2hhbGwoKQogICAgeD17InJhY2Vfcm93
+          X2NvdW50IjpsZW4ocm93cyksInJhY2Vfcm93cyI6W10sImhvcnNlX2hpc3RvcnlfZW50cmllcyI6W119CiAgICByYWNlX2hpZHM9c2V0KCkKICAgIGZvciBy
+          IGluIHJvd3M6CiAgICAgICAgZD1kaWN0KHIpCiAgICAgICAgcmF3PWQuZ2V0KCJob3JzZXMiKQogICAgICAgIHRyeTogaG9yc2VzPWpzb24ubG9hZHMocmF3
+          KQogICAgICAgIGV4Y2VwdCBFeGNlcHRpb24gYXMgZTogaG9yc2VzPXsiZGVjb2RlX2Vycm9yIjpyZXByKGUpLCJyYXciOnJhd30KICAgICAgICBpZiBpc2lu
+          c3RhbmNlKGhvcnNlcyxsaXN0KToKICAgICAgICAgICAgZm9yIGggaW4gaG9yc2VzOgogICAgICAgICAgICAgICAgaWYgaXNpbnN0YW5jZShoLGxpc3QpIGFu
+          ZCBoOgogICAgICAgICAgICAgICAgICAgIHJhY2VfaGlkcy5hZGQoc3RyKGhbMF0pLnN0cmlwKCkpCiAgICAgICAgIyBvbmx5IHNvdXJjZS9yYXcgc2NoZW1h
+          IGZpZWxkczsgbm8gb2Rkcy9wb3B1bGFyaXR5L3BheW91dCBpbnRlcnByZXRhdGlvbgogICAgICAgIHhbInJhY2Vfcm93cyJdLmFwcGVuZCh7CiAgICAgICAg
+          ICAgICJyaWQiOnN0cihkLmdldCgicmlkIikpLAogICAgICAgICAgICAicGxhY2VfaWQiOmQuZ2V0KCJwbGFjZV9pZCIpLCJkYXRlIjpkLmdldCgiZGF0ZSIp
+          LCJjb3Vyc2UiOmQuZ2V0KCJjb3Vyc2UiKSwKICAgICAgICAgICAgImNvdXJzZV9zaXQiOmQuZ2V0KCJjb3Vyc2Vfc2l0IiksImRpc3RhbmNlIjpkLmdldCgi
+          ZGlzdGFuY2UiKSwKICAgICAgICAgICAgImhvcnNlc19kZWNvZGVkIjpob3JzZXMKICAgICAgICB9KQogICAgdG9rZW49cmlkCiAgICBmb3IgaHIgaW4gY29u
+          LmV4ZWN1dGUoInNlbGVjdCBoaWQscmFjZXMgZnJvbSBob3JzZSIpOgogICAgICAgIHJhdz1zdHIoaHJbInJhY2VzIl0pCiAgICAgICAgaWYgdG9rZW4gbm90
+          IGluIHJhdzogY29udGludWUKICAgICAgICBoaWQ9c3RyKGhyWyJoaWQiXSkuc3RyaXAoKQogICAgICAgIHRyeTogaGlzdD1qc29uLmxvYWRzKGhyWyJyYWNl
+          cyJdKQogICAgICAgIGV4Y2VwdCBFeGNlcHRpb24gYXMgZToKICAgICAgICAgICAgeFsiaG9yc2VfaGlzdG9yeV9lbnRyaWVzIl0uYXBwZW5kKHsiaGlkIjpo
+          aWQsImRlY29kZV9lcnJvciI6cmVwcihlKX0pCiAgICAgICAgICAgIGNvbnRpbnVlCiAgICAgICAgaGl0cz1bXQogICAgICAgIGlmIGlzaW5zdGFuY2UoaGlz
+          dCxsaXN0KToKICAgICAgICAgICAgZm9yIHJlYyBpbiBoaXN0OgogICAgICAgICAgICAgICAgaWYgaXNpbnN0YW5jZShyZWMsbGlzdCkgYW5kIHJlYyBhbmQg
+          c3RyKHJlY1swXSkuc3RyaXAoKT09cmlkOgogICAgICAgICAgICAgICAgICAgIGhpdHMuYXBwZW5kKHJlYykKICAgICAgICBpZiBoaXRzOgogICAgICAgICAg
+          ICB4WyJob3JzZV9oaXN0b3J5X2VudHJpZXMiXS5hcHBlbmQoewogICAgICAgICAgICAgICAgImhpZCI6aGlkLCJpbl9yYWNlX2hvcnNlcyI6aGlkIGluIHJh
+          Y2VfaGlkcywiZW50cmllcyI6aGl0cwogICAgICAgICAgICB9KQogICAgeFsicmFjZV9ob3JzZV9pZHMiXT1zb3J0ZWQocmFjZV9oaWRzKQogICAgeFsicmFj
+          ZV9ob3JzZV9jb3VudCJdPWxlbihyYWNlX2hpZHMpCiAgICB4WyJob3JzZV9oaXN0b3J5X2hvcnNlX2NvdW50Il09bGVuKHhbImhvcnNlX2hpc3RvcnlfZW50
+          cmllcyJdKQogICAgeFsicmFjZV9vbmx5X2hvcnNlX2lkcyJdPXNvcnRlZChyYWNlX2hpZHMte2VbImhpZCJdIGZvciBlIGluIHhbImhvcnNlX2hpc3Rvcnlf
+          ZW50cmllcyJdIGlmICJoaWQiIGluIGV9KQogICAgeFsiaG9yc2Vfb25seV9ob3JzZV9pZHMiXT1zb3J0ZWQoe2VbImhpZCJdIGZvciBlIGluIHhbImhvcnNl
+          X2hpc3RvcnlfZW50cmllcyJdIGlmICJoaWQiIGluIGV9LXJhY2VfaGlkcykKICAgIHJlcG9ydFsidGFyZ2V0cyJdW3JpZF09eAoKKE9VVC8iS05PV05fQURK
+          VURJQ0FUSU9OX1JBV19ESUFHTk9TVElDX3YwLjIuanNvbiIpLndyaXRlX3RleHQoCiAgICBqc29uLmR1bXBzKHJlcG9ydCxlbnN1cmVfYXNjaWk9RmFsc2Us
+          aW5kZW50PTIpKyJcbiIsZW5jb2Rpbmc9InV0Zi04IikKcHJpbnQoanNvbi5kdW1wcyh7CiAgICAic3RhdHVzIjpyZXBvcnRbInN0YXR1cyJdLAogICAgInN1
+          bW1hcnkiOntyaWQ6ewogICAgICAgICJyYWNlX3Jvd19jb3VudCI6dlsicmFjZV9yb3dfY291bnQiXSwKICAgICAgICAicmFjZV9ob3JzZV9jb3VudCI6dlsi
+          cmFjZV9ob3JzZV9jb3VudCJdLAogICAgICAgICJob3JzZV9oaXN0b3J5X2hvcnNlX2NvdW50Ijp2WyJob3JzZV9oaXN0b3J5X2hvcnNlX2NvdW50Il0sCiAg
+          ICAgICAgInJhY2Vfb25seV9jb3VudCI6bGVuKHZbInJhY2Vfb25seV9ob3JzZV9pZHMiXSksCiAgICAgICAgImhvcnNlX29ubHlfY291bnQiOmxlbih2WyJo
+          b3JzZV9vbmx5X2hvcnNlX2lkcyJdKQogICAgfSBmb3IgcmlkLHYgaW4gcmVwb3J0WyJ0YXJnZXRzIl0uaXRlbXMoKX0sCiAgICAicHJlZGljdGl2ZV9tZXRy
+          aWNzX3JlYWQiOkZhbHNlCn0saW5kZW50PTIpKQo=
+          EOF
+          sed 's/^          //' diag.py.b64 | base64 -d > known_adjudication_raw_diag_v0_2.py
+          python -m py_compile known_adjudication_raw_diag_v0_2.py
+
+      - name: Download exact frozen DB
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --connect-timeout 30             -o all_races_2005-2024.db             'https://huggingface.co/datasets/KBlueLeaf/jp-racing-horse/resolve/main/all_races_2005-2024.db?download=true'
+          test "$(stat -c%s all_races_2005-2024.db)" = '717680640'
+          echo '7828af205838d148f6bca70870d4ab152ea6b54430093dcf3159d23583252eab  all_races_2005-2024.db' | sha256sum -c -
+
+      - name: Run targeted known-case diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          python known_adjudication_raw_diag_v0_2.py | tee known_adjudication_raw_diag_stdout.json
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: multibet-known-adjudication-raw-diagnostic-v0-2
+          path: |
+            known_adjudication_raw_diag/
+            known_adjudication_raw_diag_stdout.json
+          if-no-files-found: error
+          retention-days: 30
