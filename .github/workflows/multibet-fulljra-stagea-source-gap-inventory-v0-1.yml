@@ -1,0 +1,201 @@
+name: MultiBet FullJRA StageA Source Gap Inventory v0.1
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Reconstruct frozen inventory program and authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > inventory.py.gz.b64 <<'EOF_INV'
+          H4sIAOg6uWoC/6Vb7XPbuNH/rr+C6U0KcUopkuP4RQlvRrGVWB1H8iPJ17u6Gg4lgiYvFKmClGzX9f/+7AIgCb45ums+xBQB7C4W+/JbAPzpzbtdzN6t/PAd
+          Dffa9inxovB9y2XRRrMsd5fsGLUszd9sI5ZodhhGiZ34URi30lfsfmuzmBraOt4bmmfHXuCvDO33OAoNbWMnnqExaI3/HfgJlZTXURDQNaeTkr6IdmFCmaE5
+          1LV3QeL460R0duyEJv6Gpj3T36J1CxyAYdp4Az9brcvP1ujXm9HFYnRpzcf/HGmmdto/tU7OetbJca/YfDU8+nACHcjp2dGZ7R71Ppy9P3P6x2fuyWptn/bO
+          TnvOsb3qfzii9snqw/Hx+17v/L2zdt/3P5w7R++h+xG2rUgrI/rleriwLqa3kwUQ7p+cvD8vteVce73j3vHJWf/4g3Ny1FufuK7dO+kdnbqrc7o+Pz86OT7/
+          sOqd9U/p6sQ5tZ2jI3pun9Nz2u9R2+0dkdYvo8ntaA60nl3y7A96R84L0dyIab7mhxqzw3va7hv9vv7Smo0vrRlqg9HuOtps/YC2GfmX89w/eiF666qxuYfN
+          rRasjRZ7NohuudiIyh9wneta52ctTtigpcE/z5R20BW92zp//eAnHl+wbrSlYZuwFdE1O9ZcMQr/odwrlBuMhbUDe7Ny7IHbZdR22v1Pn456urEiRB9oXne3
+          RUtorwRtRsFUQ3jt0UfHv6dx0i5JHPghjdv8/0Hgx8kdiLssyp0SKQrfJv8KSff3yA/FaP1v+ELv0nAdObRN7Hjt+0TXa1gHke1Y9HELxk4doa4b7hIJ9LI2
+          MHywiqLA/GIHMdWFED9pX1j0HxpqazuMQn9tB5q9A7dkfvKk+bEWhVTrH3WAk5/A8q6p5TvaljINhQNHAzegjqGFkeaB1ijrcqq+E5t3y1aqY+yLauargdq1
+          EvqYtPmU/PDeJLvE7Zx1Yv8eJhpvwXeF+vR8qWITX3VBef5WLjBn5ALrRIsH4OVh4oc7mjX9pC1g2prrP2JYiSE6PGm7mGqJR7XYBg+HqXUgNuw2IQoJwQPe
+          BE/dMm0wT3cXBNC+9nL7NWJFOL6atg/E509xQjejRz9pu+Rqen1pfR5e5v5/PZ6MtOf4DUMLV/jEd8eDkyVnB2oSPnYY+Yz0ZDr5+2xo8bHAosDAibv2FpzA
+          acfiLbAMwCegQX9j4lNME/4LbL3CSTC6vL3JmY0vSUYIhr0xhR1wEo0UFFEhJk1n8CipeGbBa5BKS1mB3HxVneUTqImEgx8rTETM55RMaUW8MlkRRA+gCx21
+          Zy8lJ50cOBiedFOewSweTvbSiGITDLu918BXCLqAYuXoP+6G20WbvP2t83bTeesQAx7fvd28k49vN/CgGGTCngaSc5rAkOgWH9qxAfT0LhdA7/pxJKxf8Sr6
+          uKbbRPvFDnZ0xFjEBls7jtX5TMB55HTC3SabByhuj1EDm3Eye9MkZFAYlIqXMXs0XQhcCdDIXsn+j0gPkzoI6fohBOn2o65RCF45KSnqiP+BFD+oCriNYj/x
+          97m2H00hc6vM6xFlR4vj8tuhoz3+3FMY5vTCRKGmMEi18JhqYVCeu2/i4MeidfAhpulXeDH7IYvoVhJ9p2HchneGlr0Ez82VD01lxujZujQyaO46VOSRAJBV
+          2IeUiC4ME4oTO1xTTnz1BB4nFY12Ce8K4iJJkdy7sCyOHQQQV3TtrwWh5AQEO8vxGbRYLHrg8tdKjAYDPwsmI5NItPrdRIzXxRQX5wLJAKHIDz0NzLdZGMqN
+          uE3+Pp9OePS5Hs8XeQTDCagqEAS45zH0O6CpZxLBj1YekGupX45nEAo4E2v6xZpN/zHPAI3tOG5g37fxvxjAqg/JE5+lRvjrO3i77EJP3isdCQqMwjUAIQuS
+          8z3AA7Y3vL2RQELv0865JMBya2R7/SOE1uy3l5snqxi6p74ZlD2xTT5PF1fWt+Hi4ooYjBuNvYKF6Hj6JxNEEMYiu12O58Ovs9GIGEisnmlqnmQ2vBhZ08n1
+          b0A37enV9ryazuZpV0+1RynceD4fT74KpikYA1TTdlYSBmXmiXBSvou/+1vLWVlo89bao+vvAh4poKmAl1LAURlWyE0OwLkEQyr8sWL/P/SNWa4SmjMJ9ORl
+          xHOFShk1KODYWeklHk35KmfCe0iSqW7UyOLZZhFSFhRo5ArKniQtcH8Tg0TaX89t21QqLkQdosmhie0HGWbEWcemLNIQ3uJLsH5T1nVQL4QhRQIQnWDmYOfw
+          pgvRxXLtdRKxp6znLHqoppzEXgU0Np/ZXW8JIeUBmQzwR+7zSI8+0vUOks5fYooFpBYiauR1oKBubWzQKtMePMoAVz5tqUk4afIXKH+UhSIInEkK7wR3nusB
+          Z8flhsYlm43+7xYiy6W1GH6+Hs0VW2CJ4SWmGH4nmC2N9Kfgscw7A+blc+83TNclW2bfb2whj+WHbtR+ZsmLTpRZeX+KileiElIwJmY+E4h4AGS2gSgw4BHR
+          CfxZRzuUPn0AL0iw0RehGh757GJSIukBSY/TQWWozdJ/BeNPJlcGLkX20vtk8rkdBr/nF1ejb0NRGG38OMZq5lmCYcGjw1noLxqXtL6T1/FEJyJtXdQvM6Cq
+          YcocgHL3NETD1jbgPD6USGss0DByx6AZ6If1DxRVvOyNdgmEZ2AAnLBY66B8uNcBVhznBQ6XGukXnJInv0KJXLO20iMwfaWLZuCSGWKdjHy5jHSxDLFUwoHQ
+          nki5gvIdDoPZHTeHpV6p9tJEAiUoSIRhZpBPQmZNUefwmTBdUSfvJ5VkPr98lGtGNyvKigrA/3TZzuzwuwWFMQBGJR4VlCOFkaGuNCVUbiZh9x5iIqrsblmc
+          E493dyQLr8Jol38z++Wp84IULaLQgP+KwAK5iNQK6CNLjSJOFstkpZpCwpBF+n+Q+O31YnxzPb4YL34jemWonFuqBEgmCbO5OnCCG/uxnbHu9I1elUCtxMzk
+          S95bFt4Wgnw+Hk2Ro26wLBlQlqCK+wgdsfCexxdsQ6NNm7Jos6wRLnk029Jos+iVW27qDkjC4PwMpfpD2hjmlnqVMCwJ0L7rQHhNAX0FctYO4gzTjNLuGX2A
+          rk3LN7+dfcG/k+mE17jTmTWe/DK8zsr7quPVbVQ00h8XtyXqiXK1qAIbR8b7V4T+OgVTfl1OJHbW630yUe+fzONer9dMD9DqYjhBaRtJqrGDhxkT1qbQq1KG
+          HuxCF9PJYvTrwroZArot8a61Z8bMuqLqLk2FJSstS4ZboPQg8b4Nr79MZ98AcHBBOfyeW1jl1KhIIrg0/vIwR4iYI3mVloHuQ3W9KTjxIBs98O1lNmhabrV+
+          ix5kBYdbjyK46J/6verYhonPQbyFIiiGucbYycFQmrmiBwhJ9XlLkfVK1s7ZriKM1w+WDjcUFdnQYF8RDaspkaHUfMeN+GCOuPV3OMcKnzsPPeaZ0MDextQh
+          A1TT6dIgrh/awUmvJ96cLV/qpJe7Ldijv9TVYFhMz5wVZkwFQF2hR3Ri34H+WApqw+trnj4NbQUQCc2vw+Mx3/nlLQDmI/iN2xIcTuE0bTAtgFrgSlBcZJme
+          S6CNL7vqjrMH8m0ZIBO2B6gj+HPaEInW0Z4CgHvwoHjS/PsQyngIfAnbQbPPGCCqvR0m2sYOcEMOGSBmyBE3x48STTsxL7CwwBewshnHuD4NHF4+1uC8dPyP
+          cY7XjAJhfQ0OWSS286rYTqIAyQzmZeF6hGANFZSTOpOHIa2QTT/y7SF8LwFSGcTUO1ZZc3xnBVuKsTb6zjfIarfbaFapllwZRw2aMI8yW7AJqJlBqxbuHGzl
+          vBu8qDo8NQ5YpwcuViM4PDC2KMi1fgqvBZ/R9eiX4WShhIPa4XUpAU1FbOSQJmKQNvQDUWBtfvS4G9TuOv6ZxPhnNaVkvOIUMZLO/6zKfkA1y6WH6S+mNLSC
+          aG0HZr5NXJN3QaX/Q+I9q9fZT9rY5Qw8UDweCqJ/KtEVd0btOI7WPmDkj1qUeJQ9IABmqKRQuw+ilR1oqWt0kJQocSGaiwDOHbhby52x+pxd3g7PpoSlNrLg
+          G52E1BJNbAYlXmzeIfUlR8xKrSo31EXdj7ZUbwOqwQl6g0aMkq+9wCi1BJsz9eGwBQWSEF2U3Y1Ev9MnM7XbWlLQAcnktofWIjFKIZn9cZAi1PFt9O3zaDa/
+          Gt+8ilNyAXhCALGq4rqmAj9Ol7XzcQub1Wq6LexIuNXBaA91aysLETmdL+PRtdgyrlnfqsJStJXLQQauUQRf/fcV9NU/+TH8OlLxVwU3ZACswXxSCCrrqPqF
+          rY3o+Z5jVm0LNJiV2amIx8v8+YPyfALPauGNw0/rym4VNv/x+rs0+o1ZKRxry9C0BEzPTb6NJosGX67UmTXkhNmU60p1XzE9ScKTryKejbP9QxcSUce14ySP
+          n/A63aE/bPdrY29NtRzINsCeX4rT87BnwZYbu0KfxPDSEwZkoRv4hCTA3XfYgn3+i32KCW1vB7Gp+Ke6Hye2fPxwnaR3GZAoH1IyE8AWgc2oY6YD8NxA7qCl
+          r3TT7JcOqktpk1OuW73JtOD3F8PZbDyalcyBBmWGP/frIwmYwXw8X4BFNQcSNw/Acu4sP1WuKSZlIijB6jr+cuNRLaNblVoR6yNTYdzBlcsqE7UVGzqsDotn
+          hAZN+yx4bmjNbieTijJxVhmrZod6lUBqFPWnqKV9VrRR/VM6pJnjbAoLN7N4qv8CpSupSyEqzZ8Ppjn6FeDinNTrsRzUG3U6mU4mt99Gs/GFNV8MF7dzRKXD
+          /F5PRcOHUBZyvka6QFschiunhR81mesA/sf2PaPU7P3A3Hf15s72JsYXHiY8EYr4c5ZM0Uj3pvd6nwrZiN0b4P1m/YE+0JRTuoOOTQkVmkyzdNpenzjLyuBl
+          Z9OCSt1LxYPCb+ZQahyQlxoLFxSRHE7dcHltbz6z/Rv28pFbjfns7fmNuVLUctOwkF+aKPaAfJUK9FyRmsjLjAB/UE5OgwzIf+XdS9flpYDrSsB/cT0aTqz5
+          9HaG++aL2e3F4nYGFVkDXTzpWKNFkgEvhOqOgHRxOplmPNkTTVEeaxZbPNGyCyHtF1u4+dZIkkYDS8WChJTjFb8DwmeZvjUU9GilKcbaI/BBHX2UOgK7RzRm
+          ZElIb1IHRlaL7cIwn2f6OptstU/+vo6wPEm18m0SMoh3m7bXkJ+E33MY2qCvbOct329Riff5Uf4PKnCkn9ujUGuvSS0iElLmry3c89nFklNtFE711DSoPsLW
+          sE4jwgpKaotvEpFBGnLUez5Lo9g1jSDl3lkAeo1Ztt7K6Pzqj8IqX3Slp3L1pyyVNIPKFOSRZ0mml8olQwgShoxeBt94M9QLMOLiClZKgVKY4C7oOohiml29
+          fmB4HwRobXdJ3Ia/js/kDSOx35yyEJt7xVs2MvWIUd3Nd/i/DdUKDZPYXLAdBYnAw6zoO/8lr+KBPremGPKOfLm9vsZjtvnNCK/+LIZfR8M0WH0d3uDRFkTX
+          6ew3a9/r9rvreE+UezeH07kcLYbj63mJCqP4NcThVGajG9y84ETwVh+RWoaQg9e8Y16z4eFuF4ryuK3zSMw357k73WWhOw3by/zCP9eLvPH/QIzSFXNihPQB
+          LxmbpPIxwIMJE+pe+uvkH4x/D+AaXCS89SPLhtjAsdC2AYtIImbyq/kftYcuX39xA76dvxAbj3i0nQsoVf4/iPiQiveqMMC2rWpK+BV/xAMRqTu8TMMF4qfe
+          qtjSYPOrWyKfxaXjgex+SPFWAi7YXbo6b8ym9DmoALNHTisbKr4GaENa1geKEHePGTASxmfmCZ6IqAh56mY4n9d7wcX02831aKHmbwKpDyKJ66/5J0cwXI7k
+          uD8dYM0vhnjJ07qZjS7HF4vxL/hqOuMXD1uF6J4mOlx+oez77GoHT1SHKKioXyVpEUUbZCBu0+VoSDZ0YTE36EDqwPwSX2AnlrhDSAZqPFI61xzYDF45y6kf
+          WT29GBx0xFFPrXqUMjjovEWhBq2oMX+PECuBTIrsbSAkrn6SBx9RiBXYKwg41o7vm8kmzK+IOgQYwsMirvW0PecROQ6IEW13gKj85Mna2k8QH4t8tlGceNHa
+          SjxGYy9CxMVP1OroZTfAsiVTr3/ysKenzhzX9pGRR9rCixq6hd+Lr3L4PWtnt9lC6OKtEKFi/DCPf3kkb8f6oQPSmEfi66RKDCtcF+eyyRy7NSRHmTc3NuBI
+          mf/srZl+39cdsnvAOGFyg7/SWANlFhQuli3b2qTTcVYEKP575+OGDM+OH+u6pdbdQZs/aITIZeWuTWKgkYEsHbwO3OHXgYlh808OTQhHESgvgeHE8CgkW4LX
+          ZfmpMGkkyLvgjdqD6Aw0J5LfKnFpxVeA7/DLspSFCUzEDiiwiaVCOTQpgZ/YM/mtaQQvbbvrrHRDPhYCh27Y3eolaHhZugtsGZbBtmYRH0mCQse6US+GGL9l
+          fA932/zZGNHB/BzMlq0WpB3LwoRtWVAeWxaal2WRgTCz1v8Dnwr0VIA6AAA=
+          EOF_INV
+          sed 's/^          //' inventory.py.gz.b64 | base64 -d | gzip -d > inventory_fulljra_speed_stagea_source_gaps_v0_1.py
+          echo '2cb3eba5d2bf2e503e75c8adf9b71e5c3307ffbc5d0d3e9a9ae88e3a5dac0eea  inventory_fulljra_speed_stagea_source_gaps_v0_1.py' | sha256sum -c -
+          cat > expected.csv.xz.b64 <<'EOF_EXPECTED'
+          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
+          Z/sCAAAAAARZWg==
+          EOF_EXPECTED
+          sed 's/^          //' expected.csv.xz.b64 | base64 -d | xz -d > EXPECTED_JRA_FLAT_RACE_IDS_2016_2020_CANONICAL_v0.1.csv
+          echo '0040468145d620c6ffa06027fb9ec9926495b0817eb6d7ad22e9a9e9e10eaf02  EXPECTED_JRA_FLAT_RACE_IDS_2016_2020_CANONICAL_v0.1.csv' | sha256sum -c -
+          test "$(wc -l < EXPECTED_JRA_FLAT_RACE_IDS_2016_2020_CANONICAL_v0.1.csv)" = '16639'
+          python -m py_compile inventory_fulljra_speed_stagea_source_gaps_v0_1.py
+
+      - name: Download exact frozen KBlueLeaf DB
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --connect-timeout 30 \
+            -o all_races_2005-2024.db \
+            'https://huggingface.co/datasets/KBlueLeaf/jp-racing-horse/resolve/main/all_races_2005-2024.db?download=true'
+          test "$(stat -c%s all_races_2005-2024.db)" = '717680640'
+          echo '7828af205838d148f6bca70870d4ab152ea6b54430093dcf3159d23583252eab  all_races_2005-2024.db' | sha256sum -c -
+
+      - name: Run fail-through source-gap inventory over frozen 16639
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf source_gap_inventory
+          python inventory_fulljra_speed_stagea_source_gaps_v0_1.py \
+            --db all_races_2005-2024.db \
+            --expected-flat EXPECTED_JRA_FLAT_RACE_IDS_2016_2020_CANONICAL_v0.1.csv \
+            --outdir source_gap_inventory | tee source_gap_inventory_stdout.json
+          python - <<'PY_GATE'
+          import json, pathlib
+          p=pathlib.Path('source_gap_inventory/FULLJRA_SPEED_STAGEA_SOURCE_GAP_REPORT_v0.1.json')
+          x=json.loads(p.read_text())
+          assert x['status']=='PASS_SOURCE_GAP_INVENTORY_COMPLETE'
+          assert x['classification']=='SOURCE_ONLY_COMPLETE_SCAN_NO_PREDICTIVE_SCORING'
+          assert x['races']==16639
+          assert x['expected_flat_sha256']=='0040468145d620c6ffa06027fb9ec9926495b0817eb6d7ad22e9a9e9e10eaf02'
+          assert x['predictive_metrics_read'] is False
+          assert x['winner_labels_used'] is False
+          assert x['ranking_values_exported'] is False
+          assert x['odds_popularity_payout_read'] is False
+          assert x['posthoc_threshold_selected'] is False
+          print(json.dumps(x, indent=2, sort_keys=True))
+          PY_GATE
+
+      - name: Seal inventory hashes
+        if: always()
+        shell: bash
+        run: |
+          if [ -d source_gap_inventory ]; then
+            find source_gap_inventory -type f ! -name SHA256SUMS_SOURCE_GAP_INVENTORY.txt -print0 | sort -z | xargs -0 sha256sum > source_gap_inventory/SHA256SUMS_SOURCE_GAP_INVENTORY.txt || true
+          fi
+
+      - name: Upload source-gap evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: multibet-fulljra-stagea-source-gap-inventory-v0-1
+          path: |
+            source_gap_inventory/
+            source_gap_inventory_stdout.json
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Cleanup raw DB
+        if: always()
+        shell: bash
+        run: rm -f all_races_2005-2024.db
