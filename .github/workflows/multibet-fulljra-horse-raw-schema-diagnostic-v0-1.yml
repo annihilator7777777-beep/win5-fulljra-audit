@@ -1,0 +1,195 @@
+name: MultiBet FullJRA Horse Raw Schema Diagnostic v0.1
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  horse-schema:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Download exact frozen KBlueLeaf DB
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --connect-timeout 30 \
+            -o all_races_2005-2024.db \
+            'https://huggingface.co/datasets/KBlueLeaf/jp-racing-horse/resolve/main/all_races_2005-2024.db?download=true'
+          test "$(stat -c%s all_races_2005-2024.db)" = '717680640'
+          echo '7828af205838d148f6bca70870d4ab152ea6b54430093dcf3159d23583252eab  all_races_2005-2024.db' | sha256sum -c -
+
+      - name: Inspect Horse.races raw schema without outcomes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > horse_schema_diag.py <<'PY'
+          import sqlite3, json, re, hashlib, collections, pathlib
+
+          DB = "all_races_2005-2024.db"
+          OUT = pathlib.Path("horse_raw_schema_diag")
+          OUT.mkdir(exist_ok=True)
+
+          RID = re.compile(r'20(?:16|17|18|19|20)(?:0[1-9]|10)\d{6}')
+          FORBIDDEN = {
+              "rank","finish","finishing_position","result","winner","win",
+              "odds","popularity","payout","payoff","prize","placing","order"
+          }
+
+          con = sqlite3.connect(DB)
+          cur = con.cursor()
+
+          tables = [r[0] for r in cur.execute(
+              "select name from sqlite_master where type='table' order by name"
+          )]
+          horse_table = next((t for t in tables if t.lower() == "horse"), None)
+          if horse_table is None:
+              raise SystemExit("Horse table not found")
+
+          cols = [r[1] for r in cur.execute(f'pragma table_info("{horse_table}")')]
+          races_col = next((c for c in cols if c.lower() == "races"), None)
+          if races_col is None:
+              raise SystemExit("Horse.races column not found")
+
+          def forbidden_key(k):
+              s = str(k).lower()
+              return any(x in s for x in FORBIDDEN)
+
+          def redact(x, depth=0):
+              if depth > 5:
+                  return "<DEPTH_LIMIT>"
+              if isinstance(x, dict):
+                  return {
+                      str(k): ("<FORBIDDEN_VALUE>" if forbidden_key(k) else redact(v, depth+1))
+                      for k, v in list(x.items())[:40]
+                  }
+              if isinstance(x, list):
+                  return [redact(v, depth+1) for v in x[:8]]
+              if isinstance(x, str):
+                  ids = RID.findall(x)
+                  if ids:
+                      z = x
+                      for rid in ids:
+                          z = z.replace(rid, f"<RACE_ID:{rid}>")
+                      return re.sub(r'\d+(?:\.\d+)?', '<N>', z[:500])
+                  return f"<STR len={len(x)}>"
+              if x is None:
+                  return "<NULL>"
+              return f"<{type(x).__name__.upper()}>"
+
+          stats = collections.Counter()
+          keysets = collections.Counter()
+          element_types = collections.Counter()
+          samples = []
+          relevant = 0
+          total = 0
+
+          q = f'SELECT "{races_col}" FROM "{horse_table}"'
+          for (raw,) in cur.execute(q):
+              total += 1
+              if raw is None:
+                  stats["null"] += 1
+                  continue
+              s = raw if isinstance(raw, str) else str(raw)
+              ids = RID.findall(s)
+              if not ids:
+                  stats["no_target_race_id"] += 1
+                  continue
+              relevant += 1
+              stats["relevant_rawtoken"] += 1
+              stats[f"sqlite_python_type:{type(raw).__name__}"] += 1
+              stats[f"leading:{s[:1] or '<empty>'}"] += 1
+
+              parsed = None
+              try:
+                  parsed = json.loads(s)
+                  stats["json_valid"] += 1
+                  stats[f"json_top:{type(parsed).__name__}"] += 1
+              except Exception:
+                  stats["json_invalid"] += 1
+
+              if isinstance(parsed, list):
+                  stats[f"json_list_len_bucket:{min(len(parsed),20)}"] += 1
+                  for e in parsed[:20]:
+                      element_types[type(e).__name__] += 1
+                      if isinstance(e, dict):
+                          safe_keys = tuple(sorted(k for k in e.keys() if not forbidden_key(k)))
+                          keysets[safe_keys] += 1
+              elif isinstance(parsed, dict):
+                  safe_keys = tuple(sorted(k for k in parsed.keys() if not forbidden_key(k)))
+                  keysets[safe_keys] += 1
+
+              if len(samples) < 30:
+                  samples.append({
+                      "target_race_ids": ids[:8],
+                      "raw_length": len(s),
+                      "json_valid": parsed is not None,
+                      "json_top_type": type(parsed).__name__ if parsed is not None else None,
+                      "redacted_structure": redact(parsed if parsed is not None else s),
+                  })
+
+          report = {
+              "status": "PASS_HORSE_RAW_SCHEMA_DIAGNOSTIC_COMPLETE",
+              "classification": "SOURCE_ONLY_SCHEMA_DIAGNOSTIC_NO_PREDICTIVE_SCORING",
+              "db_sha256_expected": "7828af205838d148f6bca70870d4ab152ea6b54430093dcf3159d23583252eab",
+              "horse_table": horse_table,
+              "horse_columns": cols,
+              "races_column": races_col,
+              "horse_rows_scanned": total,
+              "horse_rows_relevant_rawtoken": relevant,
+              "stats": dict(stats),
+              "element_types": dict(element_types),
+              "top_safe_keysets": [
+                  {"keys": list(k), "count": n} for k, n in keysets.most_common(30)
+              ],
+              "samples": samples,
+              "predictive_metrics_read": False,
+              "winner_labels_used": False,
+              "odds_popularity_payout_read": False,
+              "posthoc_threshold_selected": False,
+          }
+
+          out = OUT / "HORSE_RAW_SCHEMA_DIAGNOSTIC_v0.1.json"
+          out.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+          sha = hashlib.sha256(out.read_bytes()).hexdigest()
+          (OUT / "SHA256SUMS.txt").write_text(
+              f"{sha}  {out.name}\n", encoding="utf-8"
+          )
+          print(json.dumps({
+              "status": report["status"],
+              "horse_rows_scanned": total,
+              "horse_rows_relevant_rawtoken": relevant,
+              "json_valid": stats.get("json_valid", 0),
+              "json_invalid": stats.get("json_invalid", 0),
+              "artifact_sha256": sha,
+          }, indent=2))
+          PY
+          python horse_schema_diag.py | tee horse_schema_diag_stdout.json
+
+      - name: Assert predictive firewall
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          p="horse_raw_schema_diag/HORSE_RAW_SCHEMA_DIAGNOSTIC_v0.1.json"
+          d=json.load(open(p))
+          assert d["predictive_metrics_read"] is False
+          assert d["winner_labels_used"] is False
+          assert d["odds_popularity_payout_read"] is False
+          assert d["posthoc_threshold_selected"] is False
+          assert d["status"] == "PASS_HORSE_RAW_SCHEMA_DIAGNOSTIC_COMPLETE"
+          print("PASS_PREDICTIVE_FIREWALL")
+          PY
+
+      - name: Upload schema diagnostic artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: multibet-fulljra-horse-raw-schema-diagnostic-v0-1
+          path: |
+            horse_raw_schema_diag/
+            horse_schema_diag_stdout.json
+          if-no-files-found: error
+          retention-days: 30
