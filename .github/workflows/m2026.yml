@@ -1,0 +1,101 @@
+name: MULTIBET racedata 2026-current full runner parity v0.2 push-run
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/m2026.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout pinned racedata source
+        uses: actions/checkout@v6
+        with:
+          repository: leostudiono1/racedata
+          ref: 496bd254f96f0a370616d350f862153f2f5cece0
+          path: racedata
+          fetch-depth: 1
+
+      - name: Verify pinned source commit
+        shell: bash
+        run: |
+          test "$(git -C racedata rev-parse HEAD)" = "496bd254f96f0a370616d350f862153f2f5cece0"
+
+      - name: Materialize frozen auditor v0.2
+        shell: bash
+        run: |
+          echo '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' | base64 -d | gzip -d > multibet_racedata_full_runner_parity_audit_v0_2.py
+          test "$(sha256sum multibet_racedata_full_runner_parity_audit_v0_2.py | awk '{print $1}')" = "ff49d70efc7902732b42be1b94d1a0243e27ceed227670af80d7163331615974"
+          python -m py_compile multibet_racedata_full_runner_parity_audit_v0_2.py
+
+      - name: Run full 2026-current fail-closed gate
+        id: audit2026
+        continue-on-error: true
+        run: |
+          python multibet_racedata_full_runner_parity_audit_v0_2.py \
+            --jra-root racedata/data/archive/2026 \
+            --netkeiba-root racedata/data/netkeiba/races/2026 \
+            --year 2026 \
+            --expected-final-races 2610 \
+            --report RACEDATA_FULL_2026_CURRENT_RUNNER_PARITY_V02.json \
+            --ledger PORTABLE_BT_LEDGER_2026_CURRENT_V02.csv
+
+      - name: Seal provenance and hashes
+        if: always()
+        shell: bash
+        run: |
+          cat > RACEDATA_FULL_2026_CURRENT_PROVENANCE_V02.txt <<'EOF'
+          source_repository=leostudiono1/racedata
+          source_commit=496bd254f96f0a370616d350f862153f2f5cece0
+          auditor=MULTIBET_RACEDATA_FULL_RUNNER_PARITY_AUDIT_20260929_v0.2
+          auditor_sha256=ff49d70efc7902732b42be1b94d1a0243e27ceed227670af80d7163331615974
+          expected_official_completed_races=2610
+          target=2026 current final race universe through pinned source commit; runner gate restricted to JRA turf/dirt finals
+          transport=push-trigger compressed exact-auditor one-file
+          action_authority=false
+          predictive_credit=0
+          financial_credit=0
+          EOF
+          sha256sum multibet_racedata_full_runner_parity_audit_v0_2.py RACEDATA_FULL_2026_CURRENT_RUNNER_PARITY_V02.json > RACEDATA_FULL_2026_CURRENT_SHA256_V02.txt || true
+          if [ -f PORTABLE_BT_LEDGER_2026_CURRENT_V02.csv ]; then sha256sum PORTABLE_BT_LEDGER_2026_CURRENT_V02.csv >> RACEDATA_FULL_2026_CURRENT_SHA256_V02.txt; fi
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: multibet-racedata-full-2026-current-runner-parity-v02-496bd254
+          path: |
+            RACEDATA_FULL_2026_CURRENT_RUNNER_PARITY_V02.json
+            PORTABLE_BT_LEDGER_2026_CURRENT_V02.csv
+            RACEDATA_FULL_2026_CURRENT_PROVENANCE_V02.txt
+            RACEDATA_FULL_2026_CURRENT_SHA256_V02.txt
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Enforce PASS
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY_CHECK'
+          import json, pathlib, sys
+          p=pathlib.Path('RACEDATA_FULL_2026_CURRENT_RUNNER_PARITY_V02.json')
+          if not p.exists():
+              print('FAIL: audit report missing'); sys.exit(2)
+          r=json.loads(p.read_text())
+          keys=['status','expected_official_final_race_count','race_count','netkeiba_race_count','flat_final_race_count',
+                'jra_active_runner_count','netkeiba_active_runner_count','netkeiba_joined_runner_count',
+                'official_final_race_count_mismatch_count','missing_runner_count','extra_runner_count',
+                'duplicate_horse_no_count','missing_horse_id_count','non_10_digit_horse_id_count',
+                'duplicate_horse_id_count','horse_name_mismatch_count','no_winner_race_count',
+                'canonical_race_join_failure_count','fatal_error']
+          print(json.dumps({k:r.get(k) for k in keys},ensure_ascii=False,indent=2))
+          sys.exit(0 if r.get('status')=='PASS' else 2)
+          PY_CHECK
